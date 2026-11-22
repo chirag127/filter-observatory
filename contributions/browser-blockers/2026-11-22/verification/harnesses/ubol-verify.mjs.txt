@@ -1,0 +1,58 @@
+/* {"kind":"verifier_source_reference_projection","source":{"task_relative_path":"ubol-verify.mjs","sha256":"75a64079461169bbd97620caaac02b895be5962d94c9ec130e37ef776438d818","bytes":2409},"host_path_redaction":true,"execution_identity_redaction":true,"private_endpoint_redaction":true,"not_reexecuted":true,"executable_as_packaged":false,"note":"Text reference only. Restore original task-relative layout and replace symbolic roots before any separately authorized reproduction."} */
+import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
+
+const root = new URL('./', import.meta.url);
+const repo = fileURLToPath(new URL('uBlock/', root));
+const phase = process.argv[2];
+if ( ![ 'red', 'green', 'package-dom', 'green-final', 'package-dom-final' ].includes(phase) ) {
+    throw new Error('Expected a recorded verification phase');
+}
+const packagePhase = phase.startsWith('package-dom');
+const args = [ '--experimental-vm-modules', '--test', '--test-reporter=tap', 'platform/mv3/tests/settings-recovery.test.mjs' ];
+const inputs = [
+    'platform/mv3/extension/js/settings.js',
+    'platform/mv3/tests/settings-recovery.test.mjs',
+];
+const hashes = Object.fromEntries(inputs.map(path => [
+    path,
+    createHash('sha256').update(readFileSync(`${repo}/${path}`)).digest('hex'),
+]));
+const startedAt = new Date().toISOString();
+const result = spawnSync(process.execPath, args, {
+    cwd: repo,
+    encoding: 'utf8',
+    timeout: 90000,
+    maxBuffer: 8 * 1024 * 1024,
+    env: {
+        ...process.env,
+        NODE_PATH: '${JSDOM_MODULE_ROOT}',
+        UBOL_TEST_PACKAGE: packagePhase
+            ? fileURLToPath(new URL('uBOL-home/chromium/', root))
+            : '',
+    },
+});
+const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
+writeFileSync(new URL(`ubol-${phase}.tap`, root), output);
+const receipt = {
+    phase,
+    command: [ process.execPath, ...args ],
+    cwd: repo,
+    started_at: startedAt,
+    finished_at: new Date().toISOString(),
+    node: process.version,
+    source_sha256: hashes,
+    base: '5934db2a0437a50182c4a8f3da2e0941cf806253',
+    package_base: packagePhase ? '7a2e2fa8b79395d38b2c6f9098754f0037b0f6a7' : null,
+    exit_code: result.status,
+    signal: result.signal,
+    error: result.error?.message ?? null,
+    output_path: fileURLToPath(new URL(`ubol-${phase}.tap`, root)),
+    scope: 'Real settings module, HTML, DOM utility and restore module; simulated browser runtime/storage and injected file/module/storage failures. No live extension or browser access.',
+};
+writeFileSync(new URL(`ubol-${phase}-receipt.json`, root), JSON.stringify(receipt, null, 2) + '\n');
+console.log(output);
+console.log(JSON.stringify(receipt, null, 2));
+process.exitCode = result.status ?? 1;

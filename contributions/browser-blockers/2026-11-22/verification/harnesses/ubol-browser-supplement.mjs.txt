@@ -1,0 +1,297 @@
+/* {"kind":"verifier_source_reference_projection","source":{"task_relative_path":"ubol-browser-supplement.mjs","sha256":"bf2f7ce66cc4045487ba17d43fc451045b37660fa9c6efe36ba25d340e943669","bytes":16621},"host_path_redaction":true,"execution_identity_redaction":true,"private_endpoint_redaction":true,"not_reexecuted":true,"executable_as_packaged":false,"note":"Text reference only. Restore original task-relative layout and replace symbolic roots before any separately authorized reproduction."} */
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+
+const root = fileURLToPath(new URL('./', import.meta.url));
+const repo = path.join(root, 'uBlock');
+const distribution = path.join(root, 'uBOL-home', 'chromium');
+const supplementalPath = path.join(root, 'ubol-verification-supplement.json');
+const accepted = JSON.parse(readFileSync(supplementalPath, 'utf8')).accepted_inputs;
+const requireInstalled = createRequire('${PLAYWRIGHT_TEST_ROOT}/package.json');
+const { chromium } = requireInstalled('playwright');
+const playwrightVersion = requireInstalled('playwright/package.json').version;
+const executable = chromium.executablePath();
+const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+const sourceHashes = () => Object.fromEntries(Object.keys(accepted).map(name => [
+    name, sha256(readFileSync(path.resolve(repo, name))),
+]));
+const before = sourceHashes();
+assert.deepEqual(before, accepted, 'accepted patch inputs must still match');
+assert.ok(existsSync(executable), 'use only an already installed Chromium executable');
+const work = mkdtempSync(path.join(root, 'ubol-browser-'));
+const receipt = {
+    status: 'running', started_at: new Date().toISOString(),
+    command: [process.execPath, fileURLToPath(import.meta.url)], cwd: process.cwd(),
+    node: process.version, playwright: playwrightVersion, executable,
+    source_base: '5934db2a0437a50182c4a8f3da2e0941cf806253',
+    distribution_base: '7a2e2fa8b79395d38b2c6f9098754f0037b0f6a7',
+    work_directory: work, accepted_inputs_before: before, variants: [],
+    limitations: [
+        'A pinned distribution with one accepted source overlay, not a rebuilt or signed upstream package.',
+        'Only new task-owned extension profiles are used. No personal installation or signed-in browser is accessed.',
+        'Read-error events and synchronous read exceptions are injected; the abort case calls the native FileReader.abort().',
+        'Storage failures replace only the extension page API for the selected key; the successful path uses real extension runtime and local storage.',
+        'Headless native file selection is driven through Playwright. Empty selection is exercised, not a visible OS dialog cancel button.',
+        'No module-load fault, Safari/Firefox, filter effectiveness, transactionality, or rollback guarantee is established here.',
+    ],
+};
+const receiptPath = path.join(root, 'ubol-browser-supplement-receipt.json');
+const save = () => writeFileSync(receiptPath, JSON.stringify(receipt, null, 2) + '\n');
+save();
+
+function inventory(directory, relative = '') {
+    const out = {};
+    for ( const entry of readdirSync(path.join(directory, relative), { withFileTypes: true }) ) {
+        const name = path.posix.join(relative, entry.name);
+        assert.equal(entry.isSymbolicLink(), false, `unexpected symbolic link: ${name}`);
+        if ( entry.isDirectory() ) {
+            Object.assign(out, inventory(directory, name));
+        } else if ( entry.isFile() ) {
+            out[name] = sha256(readFileSync(path.join(directory, name)));
+        }
+    }
+    return out;
+}
+
+async function installProbe(page, mode) {
+    await page.evaluate(mode => {
+        const probe = {
+            mode, readTerminal: false, storageRejected: false,
+            reported: [], unhandled: [], nativeReadStarted: false,
+        };
+        globalThis.__ubolRecoveryProbe = probe;
+        const originalError = console.error;
+        console.error = (...args) => {
+            probe.reported.push(args.map(a => String(a)).join(' '));
+            originalError.apply(console, args);
+        };
+        addEventListener('unhandledrejection', event => {
+            probe.unhandled.push(String(event.reason));
+        });
+        const NativeReader = globalThis.FileReader;
+        globalThis.FileReader = class extends NativeReader {
+            constructor() {
+                super();
+                this.addEventListener('loadend', () => { probe.readTerminal = true; });
+            }
+            readAsText(file, ...args) {
+                if ( probe.mode === 'read-throw' ) {
+                    probe.readTerminal = true;
+                    throw new DOMException('Injected synchronous file read failure', 'SecurityError');
+                }
+                if ( probe.mode === 'read-error' ) {
+                    queueMicrotask(() => {
+                        Object.defineProperty(this, 'error', {
+                            value: new DOMException('Injected file read failure', 'NotReadableError'),
+                        });
+                        Object.defineProperty(this, 'readyState', { value: this.DONE });
+                        this.dispatchEvent(new ProgressEvent('error'));
+                        this.dispatchEvent(new ProgressEvent('loadend'));
+                    });
+                    return;
+                }
+                probe.nativeReadStarted = true;
+                super.readAsText(file, ...args);
+                if ( probe.mode === 'read-abort' ) { this.abort(); }
+            }
+        };
+        if ( mode === 'storage-error' ) {
+            const originalRemove = chrome.storage.local.remove.bind(chrome.storage.local);
+            chrome.storage.local.remove = keys => {
+                const list = Array.isArray(keys) ? keys : [keys];
+                if ( list.includes('userDnrRules') ) {
+                    probe.storageRejected = true;
+                    return Promise.reject(new Error('Injected extension-page storage rejection'));
+                }
+                return originalRemove(keys);
+            };
+        }
+    }, mode);
+}
+
+async function observe(page) {
+    return page.evaluate(async () => {
+        await new Promise(resolve => requestAnimationFrame(() => resolve()));
+        const current = await chrome.runtime.sendMessage({ what: 'getCurrentConfig' });
+        return {
+            busy: document.body.classList.contains('busy'),
+            settings_display: getComputedStyle(document.querySelector('section[data-pane="settings"]')).display,
+            autoReload: current?.autoReload,
+            probe: globalThis.__ubolRecoveryProbe,
+        };
+    });
+}
+
+async function selectRestore(page, body, empty = false) {
+    const chooserPromise = page.waitForEvent('filechooser', { timeout: 8000 });
+    await page.locator('section[data-pane="settings"] button:has([data-i18n="restoreButton"])').click();
+    const chooser = await chooserPromise;
+    await chooser.setFiles(empty ? [] : {
+        name: 'synthetic-ubol-settings.json', mimeType: 'application/json', buffer: Buffer.from(body),
+    });
+    return { native_filechooser_event: true, empty_selection: empty };
+}
+
+async function clickReset(page, accepted) {
+    const dialogPromise = page.waitForEvent('dialog', { timeout: 8000 });
+    const click = page.locator('section[data-pane="settings"] button:has([data-i18n="resetToDefaultButton"])').click();
+    const dialog = await dialogPromise;
+    assert.equal(dialog.type(), 'confirm');
+    if ( accepted ) { await dialog.accept(); } else { await dialog.dismiss(); }
+    await click;
+    return { native_confirm_event: true, accepted };
+}
+
+async function runVariant(name, expectedFixed, distributionHashes) {
+    const extension = path.join(work, `${name}-extension`);
+    const profile = path.join(work, `${name}-profile`);
+    cpSync(distribution, extension, { recursive: true, errorOnExist: true, force: false });
+    if ( expectedFixed ) {
+        cpSync(path.join(repo, 'platform/mv3/extension/js/settings.js'), path.join(extension, 'js/settings.js'));
+    }
+    const copied = inventory(extension);
+    const differences = Object.keys(distributionHashes).filter(file => copied[file] !== distributionHashes[file]);
+    assert.deepEqual(differences, expectedFixed ? ['js/settings.js'] : []);
+    assert.equal(Object.keys(copied).length, Object.keys(distributionHashes).length);
+    mkdirSync(profile);
+    const result = {
+        name, expected_fixed: expectedFixed, extension_directory: extension, profile_directory: profile,
+        profile_fresh: true, copied_files: Object.keys(copied).length, copy_differences: differences,
+        settings_sha256: copied['js/settings.js'], cases: [], cleanup: {},
+        launch_options: { channel: 'chromium', headless: true, offline: true, viewport: { width: 1280, height: 960 } },
+    };
+    receipt.variants.push(result);
+    save();
+    let context;
+    let browser;
+    let closed = false;
+    try {
+        context = await chromium.launchPersistentContext(profile, {
+            channel: 'chromium', executablePath: executable, headless: true, offline: true,
+            viewport: { width: 1280, height: 960 }, reducedMotion: 'reduce', timeout: 30000,
+            args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
+        });
+        context.on('close', () => { closed = true; });
+        browser = context.browser();
+        result.browser_version = browser?.version();
+        await context.route(/^https?:\/\//, route => route.abort('blockedbyclient'));
+        const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker', { timeout: 15000 });
+        result.extension_id = new URL(worker.url()).hostname;
+        assert.match(worker.url(), /^chrome-extension:\/\/[^/]+\/js\/background\.js$/);
+        const dashboardURL = `chrome-extension://${result.extension_id}/dashboard.html`;
+        const cases = [
+            { id: 'valid-restore', operation: 'restore', mode: 'native', text: '{"autoReload":false}', expectedAutoReload: false },
+            { id: 'empty-file-selection', operation: 'restore', mode: 'native', empty: true, expectedAutoReload: true },
+            { id: 'invalid-json', operation: 'restore', mode: 'native', text: '{not json', expectedAutoReload: true },
+            { id: 'read-error', operation: 'restore', mode: 'read-error', failure: true, expectedAutoReload: true },
+            { id: 'native-read-abort', operation: 'restore', mode: 'read-abort', failure: true, expectedAutoReload: true },
+            { id: 'read-synchronous-throw', operation: 'restore', mode: 'read-throw', failure: true, expectedAutoReload: true },
+            { id: 'restore-storage-rejection', operation: 'restore', mode: 'storage-error', failure: true, text: '{"autoReload":false}', expectedAutoReload: false },
+            { id: 'confirmed-reset', operation: 'reset', mode: 'native', accept: true, initialAutoReload: false, expectedAutoReload: true },
+            { id: 'cancelled-reset', operation: 'reset', mode: 'native', accept: false, initialAutoReload: false, expectedAutoReload: false },
+            { id: 'reset-storage-rejection', operation: 'reset', mode: 'storage-error', accept: true, failure: true, initialAutoReload: false, expectedAutoReload: true },
+        ];
+        for ( const item of cases ) {
+            const page = await context.newPage();
+            const errors = [];
+            page.on('pageerror', error => { errors.push({ name: error.name, message: error.message }); });
+            const testResult = { id: item.id, started_at: new Date().toISOString() };
+            result.cases.push(testResult);
+            try {
+                await page.goto(dashboardURL, { waitUntil: 'load', timeout: 15000 });
+                await page.locator('body:not(.loading) section[data-pane="settings"]').waitFor({ state: 'visible', timeout: 15000 });
+                await page.evaluate(async state => {
+                    await chrome.runtime.sendMessage({ what: 'setAutoReload', state });
+                }, item.initialAutoReload ?? true);
+                await installProbe(page, item.mode);
+                if ( item.operation === 'restore' ) {
+                    testResult.interaction = await selectRestore(page, item.text ?? '{}', item.empty);
+                    if ( !item.empty ) {
+                        await page.waitForFunction(() => globalThis.__ubolRecoveryProbe.readTerminal, undefined, { timeout: 10000 });
+                    }
+                } else {
+                    testResult.interaction = await clickReset(page, item.accept);
+                }
+                if ( item.mode === 'storage-error' ) {
+                    await page.waitForFunction(() => {
+                        const p = globalThis.__ubolRecoveryProbe;
+                        return p.storageRejected && (p.reported.length !== 0 || p.unhandled.length !== 0);
+                    }, undefined, { timeout: 10000 });
+                }
+                if ( !item.failure || expectedFixed ) {
+                    await page.locator('body:not(.busy) section[data-pane="settings"]').waitFor({ state: 'visible', timeout: 10000 });
+                }
+                const observed = await observe(page);
+                testResult.observed = observed;
+                testResult.page_errors = errors;
+                assert.equal(observed.busy, Boolean(item.failure && !expectedFixed), `${name}: ${item.id}: busy state`);
+                assert.equal(observed.autoReload, item.expectedAutoReload, `${name}: ${item.id}: settings value`);
+                if ( expectedFixed || !item.failure ) {
+                    assert.equal(errors.length, 0, `${name}: ${item.id}: no uncaught page error`);
+                    assert.equal(observed.probe.unhandled.length, 0, `${name}: ${item.id}: no unhandled rejection`);
+                }
+                if ( expectedFixed && item.failure && item.mode !== 'read-abort' ) {
+                    assert.notEqual(observed.probe.reported.length, 0, `${item.id}: failure diagnostic`);
+                }
+                if ( ['read-error', 'confirmed-reset', 'valid-restore'].includes(item.id) ) {
+                    testResult.screenshot = path.join(work, `${name}-${item.id}.png`);
+                    await page.screenshot({ path: testResult.screenshot, fullPage: true });
+                }
+                testResult.status = 'passed';
+            } catch ( error ) {
+                testResult.status = 'failed';
+                testResult.error = { name: error.name, message: error.message };
+                testResult.page_errors = errors;
+                testResult.screenshot = path.join(work, `${name}-${item.id}-failed.png`);
+                await page.screenshot({ path: testResult.screenshot, fullPage: true }).catch(() => {});
+                throw error;
+            } finally {
+                testResult.completed_at = new Date().toISOString();
+                await page.close();
+                save();
+            }
+        }
+    } finally {
+        if ( context ) { await context.close(); }
+        result.cleanup.context_close_event = closed;
+        result.cleanup.browser_connected_after_close = browser?.isConnected() ?? false;
+        try {
+            rmSync(profile, { recursive: true });
+            result.cleanup.profile_removed = !existsSync(profile);
+        } catch ( error ) {
+            result.cleanup.profile_removed = false;
+            result.cleanup.error = { name: error.name, message: error.message };
+        }
+        save();
+    }
+    assert.equal(result.cleanup.context_close_event, true);
+    assert.equal(result.cleanup.browser_connected_after_close, false);
+    assert.equal(result.cleanup.profile_removed, true);
+}
+
+try {
+    const distributionHashes = inventory(distribution);
+    receipt.distribution_file_count = Object.keys(distributionHashes).length;
+    receipt.distribution_inventory = path.join(work, 'distribution-sha256.json');
+    writeFileSync(receipt.distribution_inventory, JSON.stringify(distributionHashes, null, 2) + '\n');
+    await runVariant('baseline', false, distributionHashes);
+    await runVariant('patched', true, distributionHashes);
+    receipt.accepted_inputs_after = sourceHashes();
+    assert.deepEqual(receipt.accepted_inputs_after, before);
+    assert.deepEqual(inventory(distribution), distributionHashes, 'read-only distribution remained unchanged');
+    receipt.accepted_inputs_unchanged = true;
+    receipt.distribution_unchanged = true;
+    receipt.status = 'verified_bounded_chromium_overlay';
+} catch ( error ) {
+    receipt.status = 'failed';
+    receipt.error = { name: error.name, message: error.message };
+    process.exitCode = 1;
+} finally {
+    receipt.completed_at = new Date().toISOString();
+    save();
+    console.log(JSON.stringify(receipt, null, 2));
+}

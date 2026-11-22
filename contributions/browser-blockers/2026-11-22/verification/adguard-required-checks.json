@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "adguard-required-checks.json",
+    "sha256": "6cf8a24480722105287af4d5a06eee14deef44facb77badc2be22f44b1d53d5e",
+    "bytes": 3450
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [
+      "results[0].value.pid",
+      "results[1].value.pid"
+    ],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": []
+  },
+  "evidence": {
+    "observed_at": "2026-11-22T15:04:39.502Z",
+    "base": "6beedf03743d53691162a11541360071cce5e55a",
+    "node": "v22.23.5",
+    "pnpm": "10.33.4",
+    "input_sha256": {
+      "Extension/src/pages/options/components/General/General.tsx": "850a69caeba872a82211489a1fa33a8f7bbde724fb578451d39436abfe20b1f1",
+      "tests/src/pages/options/components/General/General.test.tsx": "1889ebdd9ec111e553c04bf64f0452c5d6f5d470e080f6c2f9b7f799b2c6c539",
+      "package.json": "f87e86fa753b6e02c542a870fa281bb4adc42cdc90aa058aecfc61541bf249b5",
+      "pnpm-lock.yaml": "88864bf950011b898aaf9aab49c44382d1248e4b1ec003db647371714b83ad2d"
+    },
+    "runner_sha256": "c173a4894febdd19523ebe6dd0eb60449e065209acfa768cb7ae9428ca5bf521",
+    "results": [
+      {
+        "status": "fulfilled",
+        "value": {
+          "command": "../adguard-tools/node/node.exe ../adguard-tools/pnpm/package/bin/pnpm.cjs lint",
+          "cwd": "${ADGUARD_ROOT}",
+          "started_at": "2026-11-22T15:04:37.789Z",
+          "finished_at": "2026-11-22T15:04:39.502Z",
+          "exit_code": 1,
+          "signal": null,
+          "log_path": "${TASK_ROOT}/adguard-required-lint.log",
+          "log_sha256": "af6cd8d0e074fd0c9d6f61bdfd9207815e465ba6691e70e8a0697a32a95742a4",
+          "output_tail": "\n> browser-extension@5.6.0+4.build.1 lint ${ADGUARD_ROOT}\n> pnpm lint:code && pnpm lint:types\n\n\n> browser-extension@5.6.0+4.build.1 lint:code ${ADGUARD_ROOT}\n> eslint --cache --cache-location .cache/eslint/.eslintcache --cache-strategy content --max-warnings=0 --ext .jsx,.js,.cjs,.mjs,.tsx,.ts .\n\n'eslint' is not recognized as an internal or external command,\noperable program or batch file.\n ELIFECYCLE  Command failed with exit code 1.\n ELIFECYCLE  Command failed with exit code 1.\n"
+        }
+      },
+      {
+        "status": "fulfilled",
+        "value": {
+          "command": "../adguard-tools/node/node.exe ../adguard-tools/pnpm/package/bin/pnpm.cjs test",
+          "cwd": "${ADGUARD_ROOT}",
+          "started_at": "2026-11-22T15:04:37.805Z",
+          "finished_at": "2026-11-22T15:04:38.975Z",
+          "exit_code": 1,
+          "signal": null,
+          "log_path": "${TASK_ROOT}/adguard-required-test.log",
+          "log_sha256": "2c8ba90c9aca773f1b9887ff83b15140713ce7f8d9b4dcecd452c0df98b9dba3",
+          "output_tail": "\n> browser-extension@5.6.0+4.build.1 test ${ADGUARD_ROOT}\n> vitest run\n\n'vitest' is not recognized as an internal or external command,\noperable program or batch file.\n ELIFECYCLE  Test failed. See above for more details.\n"
+        }
+      }
+    ],
+    "limitations": "The frozen install failed at the internal rulesets tarball. No substitute package or synthetic dependency links were added. These commands record the actual required-check outcome in that partial installation."
+  }
+}

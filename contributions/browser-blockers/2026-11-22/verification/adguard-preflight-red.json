@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "adguard-preflight-red.json",
+    "sha256": "e059ede2c7fead8d1fe4266da409c6bc71c61f8a90a66925de490577ac24949e",
+    "bytes": 2852
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": []
+  },
+  "evidence": {
+    "observed_at": "2026-11-22T14:55:39.406Z",
+    "phase": "red",
+    "command": "../adguard-tools/node/node.exe ../adguard-verify-preflight.mjs red",
+    "cwd": "${ADGUARD_ROOT}",
+    "base": "6beedf03743d53691162a11541360071cce5e55a",
+    "node": "v22.23.5",
+    "typescript": "5.6.3",
+    "lodash": "4.17.21",
+    "inputs": {
+      "Extension/src/pages/options/components/General/General.tsx": "ade5d0c38f39ed7a141f245caedc35b636296d31763c978ee91d2fadd89131f7",
+      "Extension/src/common/unknown.ts": "bee07327ec05bed19ac031b8b7a6e7c8c757a8c973863d2b90e119f2168c5af6",
+      "tests/src/pages/options/components/General/General.test.tsx": "1889ebdd9ec111e553c04bf64f0452c5d6f5d470e080f6c2f9b7f799b2c6c539"
+    },
+    "helper_sha256": "ce672e6a90d633ef9115bad22f055734edf5936d77c068ad5ed673d3c1333c9d",
+    "verifier_sha256": "40dc4eaf334cb1eb2ad8e10e26a7e0ee5780833d22dbc1da0676630df7aa4ece",
+    "results": [
+      {
+        "name": "absent optional stealth section requires no privacy permission",
+        "status": "failed",
+        "error": "Was not able to parse file content"
+      },
+      {
+        "name": "explicit WebRTC false requires no privacy permission",
+        "status": "passed"
+      },
+      {
+        "name": "explicit WebRTC true retains privacy permission preflight",
+        "status": "passed"
+      },
+      {
+        "name": "present null stealth section is rejected",
+        "status": "passed"
+      },
+      {
+        "name": "present empty stealth section is rejected",
+        "status": "passed"
+      },
+      {
+        "name": "string WebRTC value is rejected",
+        "status": "passed"
+      },
+      {
+        "name": "numeric WebRTC value is rejected",
+        "status": "passed"
+      },
+      {
+        "name": "null WebRTC value is rejected",
+        "status": "passed"
+      },
+      {
+        "name": "invalid JSON is rejected",
+        "status": "passed"
+      }
+    ],
+    "total": 9,
+    "passed": 8,
+    "failed": 1,
+    "syntax": [
+      {
+        "file": "Extension/src/common/unknown.ts",
+        "errors": []
+      },
+      {
+        "file": "Extension/src/pages/options/components/General/General.tsx",
+        "errors": []
+      },
+      {
+        "file": "Extension/src/pages/options/components/General/General.tsx",
+        "errors": []
+      },
+      {
+        "file": "tests/src/pages/options/components/General/General.test.tsx",
+        "errors": []
+      }
+    ],
+    "exit_code": 1,
+    "coverage": "Executes the actual production preflight helper extracted by the TypeScript AST, with real Unknown and pinned lodash. Also transpiles changed TSX files for syntax diagnostics.",
+    "limitations": "Not a pnpm/Vitest pass, React interaction test, full schema validation, TypeScript type check or browser test. The first fixture intentionally isolates the preflight; backend schema validity is asserted in the added upstream Vitest test."
+  }
+}

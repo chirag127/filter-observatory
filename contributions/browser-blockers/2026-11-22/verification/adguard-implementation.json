@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "adguard-implementation.json",
+    "sha256": "b64393f48c994515882a7fef665c5620257f6dfdab424b169e2668154c49c854",
+    "bytes": 22601
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [
+      "schema_version",
+      "handoff_status",
+      "scope",
+      "hypothesis",
+      "contract_evidence",
+      "skills",
+      "documentation_fallback",
+      "planned_verification",
+      "research_handoff",
+      "running_jobs",
+      "running_agents",
+      "job_disposition",
+      "next_action",
+      "operations[0].authorization",
+      "operations[0].job_id",
+      "operations[0].pid",
+      "operations[0].output_path",
+      "operations[1].authorization",
+      "operations[1].job_id",
+      "operations[1].pid",
+      "operations[1].output_path",
+      "operations[2].authorization",
+      "operations[2].job_id",
+      "operations[2].pid",
+      "operations[2].output_path",
+      "required_checks_intent.authorization",
+      "required_checks_intent.job_id",
+      "required_checks_intent.pid",
+      "required_checks_intent.output_path",
+      "required_checks_intent.results[0].pid",
+      "required_checks_intent.results[1].pid",
+      "required_checks_intent.prior_attempt.job_id",
+      "required_checks_intent.prior_attempt.pid",
+      "review.owner_session",
+      "review.duplicate_session"
+    ],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": [
+      "Helper red/green and TSX syntax only; full lint/tests were blocked. The deferred comma investigation is not a delivered fix or a packaged patch."
+    ]
+  },
+  "evidence": {
+    "status": "bounded_patch_ready_with_verification_gaps",
+    "observed_date": "2026-11-22",
+    "repository": "https://github.com/AdguardTeam/AdguardBrowserExtension",
+    "checkout": "${ADGUARD_ROOT}",
+    "base_commit": "6beedf03743d53691162a11541360071cce5e55a",
+    "branch": "research/settings-enhancements",
+    "initial_worktree": "clean",
+    "initial_lock_sha256": "88864bf950011b898aaf9aab49c44382d1248e4b1ec003db647371714b83ad2d",
+    "selected_correction": "Honor the optional stealth section in General.tsx import preflight; retain malformed-section rejection and the existing WebRTC permission flow.",
+    "selected_contract_evidence": [
+      "Extension/src/background/schema/configuration/main.ts:63 marks stealth optional.",
+      "Extension/src/background/api/settings/settings-common.ts:245-266 validates the configuration, resets, and conditionally imports stealth only when present.",
+      "At the pinned baseline, Extension/src/pages/options/components/General/General.tsx:122-131 throws when the optional section is absent, before inputChangeHandler reaches the backend at lines 193-205. The delivered guard at lines 125-128 corrects that mismatch."
+    ],
+    "formal_spec_coverage": "The specs directory mentioned by AGENTS.md is absent at this checkout. The two pinned custom-filter URL producers disagree about encoding, so that investigation is deferred without a parser change. The selected optional-stealth correction follows the existing JSON schema and backend import contract. Hosted share-link relay behavior has not been exercised.",
+    "deferred_comma_investigation": {
+      "reason": "Independent review identified incompatible producers: the share exporter encodes entries individually before joining commas, while the v4 report producer encodes the complete joined list. The same bytes can describe different entries; raw-split would merge existing report lists. The task explicitly permits choosing another clear settings error when the preferred case is ambiguous.",
+      "source": "Extension/src/background/api/ui/pages/pages-common.ts:359-366,386-394",
+      "evidence_patch": "../adguard-comma-investigation.patch",
+      "status": "Exploratory test additions were archived and removed from the deliverable after exact diff comparison. No production parser change was made. Hosted relay behavior remains unknown."
+    },
+    "operations": [
+      {
+        "id": "toolchain",
+        "status": "verified",
+        "command": "powershell -NoProfile -File ../adguard-setup-toolchain.ps1",
+        "cwd": "${ADGUARD_ROOT}",
+        "expected_outputs": [
+          "../adguard-tools/node/node.exe",
+          "../adguard-tools/pnpm/package/bin/pnpm.cjs",
+          "../adguard-toolchain.json"
+        ],
+        "completion_mechanism": "shell background completion notification",
+        "started_at": "2026-11-22T14:21:33.1772476Z",
+        "finished_at": "2026-11-22T14:25:18.8782642Z",
+        "receipt": "../adguard-toolchain.json",
+        "node_version": "v22.23.5",
+        "pnpm_version": "10.33.4",
+        "integrity": "Node SHA-256 and pnpm SHA-512 matched the official source metadata. Completion event consumed."
+      },
+      {
+        "id": "dependencies",
+        "status": "failed_cli_options",
+        "command": "powershell -NoProfile -File ../adguard-install-dependencies.ps1",
+        "effective_command": "node ../adguard-tools/pnpm/package/bin/pnpm.cjs install --frozen-lockfile --ignore-scripts --store-dir ../adguard-tools/store --cache-dir ../adguard-tools/cache --state-dir ../adguard-tools/state --fetch-retries=0 --fetch-timeout=20000 --network-concurrency=4 --reporter=append-only",
+        "cwd": "${ADGUARD_ROOT}",
+        "expected_outputs": [
+          "node_modules",
+          "../adguard-dependencies.json",
+          "../adguard-dependencies.log"
+        ],
+        "completion_mechanism": "shell background completion notification",
+        "known_risk": "pnpm-lock.yaml:470 pins @adguard/dnr-rulesets@6.1.1 to the internal ak.int.agrd.dev registry. Preserve a failed receipt rather than substituting packages.",
+        "exit_code": 1,
+        "started_at": "2026-11-22T14:29:27.2691154Z",
+        "finished_at": "2026-11-22T14:29:28.8011852Z",
+        "receipt": "../adguard-dependencies.json",
+        "finding": "CLI rejected frozen-lockfile/state-dir while interpreting arguments as add. No dependency resolution occurred. Installed pnpm install --help confirms frozen-lockfile; pnpm 10 CLI docs require --config. for configuration keys not accepted as command options.",
+        "completion_event_consumed": true
+      },
+      {
+        "id": "dependencies-attempt-2",
+        "status": "blocked_internal_registry",
+        "command": "powershell -NoProfile -File ../adguard-install-dependencies.ps1 -Attempt 2",
+        "effective_command": "node ../adguard-tools/pnpm/package/bin/pnpm.cjs install --frozen-lockfile --ignore-scripts --store-dir ../adguard-tools/store --config.cache-dir=../adguard-tools/cache --config.state-dir=../adguard-tools/state --fetch-retries=0 --fetch-timeout=20000 --network-concurrency=4 --reporter=append-only",
+        "cwd": "${ADGUARD_ROOT}",
+        "expected_outputs": [
+          "node_modules",
+          "../adguard-dependencies-attempt-2.json",
+          "../adguard-dependencies-attempt-2.log"
+        ],
+        "completion_mechanism": "shell background completion notification",
+        "option_reference": "https://pnpm.io/10.x/pnpm-cli#differences-vs-npm",
+        "exit_code": 1,
+        "started_at": "2026-11-22T14:36:34.6558400Z",
+        "finished_at": "2026-11-22T14:41:59.4221119Z",
+        "receipt": "../adguard-dependencies-attempt-2.json",
+        "finding": "ERR_PNPM_FETCH_403 for the frozen @adguard/dnr-rulesets@6.1.1 tarball at ak.int.agrd.dev. Other 1228 packages were downloaded; root package/bin links were not finalized. Lock SHA-256 remained unchanged. Do not substitute the unavailable package or retry without new authorization/access.",
+        "completion_event_consumed": true
+      }
+    ],
+    "regression_state": "Comma test additions were removed only after the archived patch matched the complete lane diff (SHA-256 af0a9a03f1c3136fb2d49782026bec219eb1efacc96e116a654493b364d6252a). General.test.tsx covers a schema-valid configuration without stealth, backend validation failure, and malformed present sections. Offline red reproduced the absent-stealth rejection: 8 passed, 1 failed, exit 1. Offline green at 2026-11-22T14:56:52.119Z passed 9/9 with exit 0. These are helper-execution results, not a Vitest/React integration pass.",
+    "offline_red_receipt": {
+      "path": "../adguard-preflight-red.json",
+      "observed_at": "2026-11-22T14:55:39.406Z",
+      "command": "../adguard-tools/node/node.exe ../adguard-verify-preflight.mjs red",
+      "exit_code": 1,
+      "passed": 8,
+      "failed": 1,
+      "expected_failure": "absent optional stealth section requires no privacy permission: Was not able to parse file content",
+      "production_input_sha256": "ade5d0c38f39ed7a141f245caedc35b636296d31763c978ee91d2fadd89131f7",
+      "coverage": "Actual production helper extracted with TypeScript AST, real Unknown and pinned lodash-es; not a Vitest/React/schema integration pass."
+    },
+    "offline_green_receipt": {
+      "path": "../adguard-preflight-green.json",
+      "observed_at": "2026-11-22T14:56:52.119Z",
+      "command": "../adguard-tools/node/node.exe ../adguard-verify-preflight.mjs green",
+      "exit_code": 0,
+      "passed": 9,
+      "failed": 0,
+      "production_input_sha256": "850a69caeba872a82211489a1fa33a8f7bbde724fb578451d39436abfe20b1f1",
+      "test_input_sha256": "1889ebdd9ec111e553c04bf64f0452c5d6f5d470e080f6c2f9b7f799b2c6c539",
+      "coverage": "Actual production helper extracted with TypeScript AST, real Unknown and pinned lodash-es; TSX syntax diagnostics clean. No change since this evidence needs this check repeated."
+    },
+    "required_checks_intent": {
+      "status": "completed_blocked_environment",
+      "command": "../adguard-tools/node/node.exe ../adguard-final-checks.mjs",
+      "cwd": "${ADGUARD_ROOT}",
+      "operations": [
+        "pnpm lint",
+        "pnpm test"
+      ],
+      "expected_outputs": [
+        "../adguard-required-checks.json",
+        "../adguard-required-lint.log",
+        "../adguard-required-test.log"
+      ],
+      "completion_mechanism": "shell background completion notification",
+      "completion_event_consumed": true,
+      "finished_at": "2026-11-22T15:04:39.502Z",
+      "exit_code": 1,
+      "receipt": "../adguard-required-checks.json",
+      "results": [
+        {
+          "command": "../adguard-tools/node/node.exe ../adguard-tools/pnpm/package/bin/pnpm.cjs lint",
+          "started_at": "2026-11-22T15:04:37.789Z",
+          "finished_at": "2026-11-22T15:04:39.502Z",
+          "exit_code": 1,
+          "outcome": "Blocked before lint/type checks: eslint executable unavailable because the frozen installation did not finalize package/bin links.",
+          "log": "../adguard-required-lint.log",
+          "log_sha256": "af6cd8d0e074fd0c9d6f61bdfd9207815e465ba6691e70e8a0697a32a95742a4"
+        },
+        {
+          "command": "../adguard-tools/node/node.exe ../adguard-tools/pnpm/package/bin/pnpm.cjs test",
+          "started_at": "2026-11-22T15:04:37.805Z",
+          "finished_at": "2026-11-22T15:04:38.975Z",
+          "exit_code": 1,
+          "outcome": "Blocked before test execution: vitest executable unavailable because the frozen installation did not finalize package/bin links.",
+          "log": "../adguard-required-test.log",
+          "log_sha256": "2c8ba90c9aca773f1b9887ff83b15140713ce7f8d9b4dcecd452c0df98b9dba3"
+        }
+      ],
+      "prior_attempt": {
+        "timeout_ms": 1000,
+        "exit_code": 143,
+        "outcome": "Runner terminated by SIGTERM after one second; no completed required-check receipt was produced.",
+        "completion_event_consumed": true,
+        "reconciliation_at": "2026-11-22T15:02:59.4738539Z",
+        "reconciliation": "One-time process reconciliation found no matching surviving runner or child process. Resume only missing verification with a sufficient deadline; no dependency installation is retried."
+      }
+    },
+    "patch_export_intent": {
+      "status": "completed",
+      "command": "../adguard-tools/node/node.exe ../adguard-export-patch.mjs",
+      "cwd": "${ADGUARD_ROOT}",
+      "expected_outputs": [
+        "../adguard-optional-stealth-import.patch",
+        "../adguard-patch-receipt.json",
+        "../adguard-final-diff-check.log"
+      ],
+      "scope": "Generate the two-file content patch from the pinned base, match existing green inputs, and perform read-only Git apply/whitespace checks. Do not modify the index or normalize the line-ending-only dirty files.",
+      "observed_at": "2026-11-22T15:06:58.987Z",
+      "exit_code": 0,
+      "receipt": "../adguard-patch-receipt.json",
+      "patch": "../adguard-optional-stealth-import.patch",
+      "patch_sha256": "6154353ae7266b2ec9b0cff0c8d9a4ddb3f036e8f25854de37996d7b1cf36ca1",
+      "patch_bytes": 5593,
+      "patch_stat": "2 files changed, 68 insertions(+), 18 deletions(-); production change is a five-line guard.",
+      "green_inputs_match": true,
+      "checks": [
+        {
+          "command": "git diff --no-ext-diff --check 6beedf03743d53691162a11541360071cce5e55a -- Extension/src/pages/options/components/General/General.tsx tests/src/pages/options/components/General/General.test.tsx",
+          "exit_code": 0
+        },
+        {
+          "command": "git apply --cached --check ../adguard-optional-stealth-import.patch",
+          "exit_code": 0
+        },
+        {
+          "command": "git apply --reverse --check ../adguard-optional-stealth-import.patch",
+          "exit_code": 0
+        }
+      ],
+      "check_log": "../adguard-final-diff-check.log",
+      "check_log_sha256": "8841e8ddf06db6ce85cc52ab3275be4c7f11595706b3107649a702dae610ff8e"
+    },
+    "review": {
+      "status": "completed_no_blocking_findings",
+      "duplicate_action": "Requested duplicate lane stop and return completed evidence; completion event consumed. No further reviewer lanes will be launched.",
+      "completed_static_review": "Initial reviews found the blocking report-producer encoding discrepancy and decoding edge cases. The existing owner subsequently reviewed the selected optional-stealth patch and matching red/green hashes: no blocking defect found; schema optionality, default false, malformed-present rejection, existing permission paths and bounded two-file content diff confirmed. Final review completion event consumed. No repository tests were rerun by the reviewer.",
+      "final_review_scope": "Static two-file diff, source contract, actual red/green receipts and matching source/test/Unknown/verifier hashes.",
+      "final_review_limitation": "Helper execution and TSX transpilation do not execute the schema assertion, React UI tests, backend import, TypeScript type checking or browser permission flow. Required pnpm lint/test are separate."
+    },
+    "final_files": [
+      {
+        "path": "Extension/src/pages/options/components/General/General.tsx",
+        "sha256": "850a69caeba872a82211489a1fa33a8f7bbde724fb578451d39436abfe20b1f1",
+        "normalized_sha256": "cd312b0cb05906c7178e74fd29ccf1711f6168245bbcf6ffe12bee137026d078",
+        "base_blob": "dd5f93cee6af3e31c681262fa678fbee44c3528d",
+        "worktree_blob": "c4d1ce8b9fcd0b05bbabea78b68994b45a1494a0"
+      },
+      {
+        "path": "tests/src/pages/options/components/General/General.test.tsx",
+        "sha256": "1889ebdd9ec111e553c04bf64f0452c5d6f5d470e080f6c2f9b7f799b2c6c539",
+        "normalized_sha256": "eee8348bf64221425a20f9c174ca065835d92c17188b9268e75c98198419b92b",
+        "base_blob": "0b932f3c0470d376138fcc202c036a55ab4bdd1c",
+        "worktree_blob": "f119027e016feeb5b51f0fd5bd44717dabe4bb9d"
+      }
+    ],
+    "worktree_disposition": {
+      "initial_state": "Clean at the pinned base; no pre-existing user edits were observed.",
+      "index_content_matches_base": true,
+      "package_and_lock_unchanged": true,
+      "line_ending_only_paths": [
+        {
+          "path": "tests/src/background/api/settings/configuration-export.test.ts",
+          "sha256": "8bc1095c841816fb10ffdc329d8c76c0a8edd24186b368d1e3e63d0287e32ee9",
+          "base_and_worktree_git_blob": "2e81e896286d06eeb9412db9b1813f5e3f4de36b"
+        },
+        {
+          "path": "tests/src/background/api/settings/configuration-import.test.ts",
+          "sha256": "01d4e63bb665b032aab725093269d9edec51ccbd27ffee483973dc3bbe111fdd",
+          "base_and_worktree_git_blob": "dcb433719128b4dfb4493bdcec6f8900ff64d5f6"
+        }
+      ],
+      "explanation": "This lane added exploratory comma tests, preserved their exact diff in adguard-comma-investigation.patch, then removed only those additions after the producer ambiguity was confirmed. Both files now match their original normalized Git blobs and have zero content diff. Remaining status entries arise from lane-owned mixed line endings/stat changes, not baseline user content changes. They are excluded from the final patch and preserved without forced rewriting or index refresh."
+    },
+    "deliverables": {
+      "bounded_implementation_and_regression_source": "done",
+      "helper_red_green_and_tsx_syntax": "done: expected red failure, then 9/9 green",
+      "independent_review": "done: no blocking findings for the selected two-file diff and matching helper receipts",
+      "reproducible_patch_and_read_only_apply_checks": "done",
+      "required_lint_and_full_tests": "blocked: commands attempted and completed with exit 1 before checks could run",
+      "react_schema_backend_and_browser_runtime_verification": "unverified"
+    },
+    "remaining_blockers": [
+      {
+        "cause": "The unchanged frozen lockfile requires @adguard/dnr-rulesets@6.1.1 from ${ADGUARD_INTERNAL_REGISTRY}/@adguard/dnr-rulesets/-/dnr-rulesets-6.1.1.tgz, which returned HTTP 403.",
+        "impact": "Dependency linking remains incomplete; pnpm lint and pnpm test cannot find eslint/vitest. No full suite, type-check, build or browser validation is claimed.",
+        "next_action": "Parent may arrange an authorized complete frozen dependency environment, then run the added General.test.tsx regression and required pnpm lint/pnpm test. No third install, replacement package or credential change was attempted in this lane."
+      },
+      {
+        "cause": "The two existing URL producers have an ambiguous custom_filters encoding contract.",
+        "impact": "Encoded-comma correction remains a deferred research finding, not the delivered fix.",
+        "next_action": "Resolve the upstream format/relay contract before making a separate compatible encoding change."
+      }
+    ]
+  }
+}

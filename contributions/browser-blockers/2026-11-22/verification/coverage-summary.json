@@ -1,0 +1,453 @@
+{
+  "schema_version": 1,
+  "kind": "derived_coverage_and_reference_index",
+  "not_reexecuted": true,
+  "adguard": {
+    "base": "6beedf03743d53691162a11541360071cce5e55a",
+    "helper_red": {
+      "passed": 8,
+      "total": 9,
+      "exit_code": 1
+    },
+    "helper_green": {
+      "passed": 9,
+      "total": 9,
+      "exit_code": 0
+    },
+    "full_checks": "blocked before lint/type/test execution by incomplete frozen dependency installation; internal ruleset URL returned HTTP 403",
+    "unverified_coverage": "The extracted helper and TSX transpilation do not execute React interactions, the real schema assertion, backend import, TypeScript type checking or browser permission handling. The required lint and test commands stopped before those checks ran.",
+    "independent_review": "Specific source diff and matching helper receipts; no full-suite or browser approval."
+  },
+  "ubol": {
+    "base": "5934db2a0437a50182c4a8f3da2e0941cf806253",
+    "distribution_base": "7a2e2fa8b79395d38b2c6f9098754f0037b0f6a7",
+    "host_red": {
+      "tests": 13,
+      "pass": 6,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "source_dom_green": {
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "distribution_dom_green": {
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "focused_lint": {
+      "errors": 0,
+      "warnings": 0,
+      "exit_code": 0
+    },
+    "full_lint": {
+      "errors": 73,
+      "warnings": 0,
+      "exit_code": 1,
+      "unchanged_files": true
+    },
+    "chromium_overlay": {
+      "patched_cases": 10,
+      "patched_passed": 10,
+      "baseline_characterization_cases": 10,
+      "baseline_expected_outcomes_matched": 10,
+      "baseline_stuck_busy_cases": [
+        "read-error",
+        "native-read-abort",
+        "read-synchronous-throw",
+        "restore-storage-rejection",
+        "reset-storage-rejection"
+      ],
+      "baseline_product_pass_claim": false,
+      "cleanup": "Both context-close events and profile removals are recorded in the browser receipt. Profile-directory absence was corroborated by the read-only inspection at 2026-11-22T15:25:32.981Z retained in verification/ubol-supplement-review.json; no independent process census was performed."
+    },
+    "independent_review": "Initial production/host evidence review resolved one test-only Node import finding. The AdGuard evidence lane separately inspected the Lite supplement and corroborated counts, input hashes, failure boundaries, cleanup receipts and screenshots. Its retained findings are bound below; no tests or browser runs were replayed.",
+    "supplement_review": {
+      "public_path": "verification/ubol-supplement-review.json",
+      "sha256": "8efbe853799c7549136126bd33653aef7aea1b57182b61f745d864fdd5936f80",
+      "bytes": 13146,
+      "observation_at": "2026-11-22T15:25:32.981Z",
+      "record_origin": "Separately authored consolidation of the completed read-only review retained in the conversation, recorded during packaging. It is not an original execution receipt or a new verification run.",
+      "original_source_sha256": {
+        "ubol-verification-supplement.json": "1dfaf5392907da3ab6ec62cd74fb11502c7c7bf1db05ff24ebb34a8a9fb072a5",
+        "ubol-browser-supplement-receipt.json": "a5d1fde5a1af13ae2aa9a8e27b653abdf763575f6647fb090e2c9e01ae51828e",
+        "ubol-browser-supplement.mjs": "bf2f7ce66cc4045487ba17d43fc451045b37660fa9c6efe36ba25d340e943669",
+        "ubol-browser-ueQrVG/distribution-sha256.json": "41dbd770c259e0ba2bb95886bc193496c015d1a211e9a20594563a1887ea91d4"
+      },
+      "inventory_observation": "The original 933 distribution files remained unchanged. Each retained post-launch fixture contained 56 additional _metadata/generated_indexed_rulesets files (989 files total). Only js/settings.js differed among original paths in the patched fixture. The metadata's browser-generated purpose is inferred; fixture directories are not packaged."
+    }
+  },
+  "limitations": [
+    "Browser run uses a one-file overlay on a pinned distribution, not a rebuilt or signed extension.",
+    "Reader errors and selected page-local storage rejections are controlled injections; abort calls native FileReader.abort. Successful browser paths use the actual fixture extension runtime.",
+    "Recovery releases dashboard busy state. Sequential restore can already have applied earlier preferences; atomicity, rollback and complete prior-settings preservation are not established.",
+    "No installed-user browser, cross-browser, effectiveness or performance claim follows from these checks."
+  ],
+  "placeholders": {
+    "${ADGUARD_ROOT}": "Operator-supplied local root; original value redacted",
+    "${UBOL_DISTRIBUTION_ROOT}": "Operator-supplied local root; original value redacted",
+    "${UBLOCK_ROOT}": "Operator-supplied local root; original value redacted",
+    "${TASK_ROOT}": "Operator-supplied local root; original value redacted",
+    "${PLAYWRIGHT_TEST_ROOT}": "Operator-supplied local root; original value redacted",
+    "${JSDOM_MODULE_ROOT}": "Operator-supplied local root; original value redacted",
+    "${PLAYWRIGHT_BROWSER_ROOT}": "Operator-supplied local root; original value redacted",
+    "${TOOL_OUTPUT_ROOT}": "Operator-supplied local root; original value redacted",
+    "${NODE_HOME}": "Operator-supplied local root; original value redacted",
+    "${USER_HOME}": "Operator-supplied local root; original value redacted",
+    "${WORKSPACE_ROOT}": "Operator-supplied local root; original value redacted",
+    "${ADGUARD_INTERNAL_REGISTRY}": "Access-controlled upstream dependency registry; original origin withheld.",
+    "${PRIVATE_SERVICE_ORIGIN}": "Private service origin withheld."
+  },
+  "screenshot_mappings": [
+    {
+      "case": "baseline-read-error",
+      "source": {
+        "task_relative_path": "ubol-browser-ueQrVG/baseline-read-error.png",
+        "sha256": "9c51ad56e1c12f1d34916458a7a6125c73d08c0d04ff15d8fe1077f0e553fe81",
+        "bytes": 8373
+      },
+      "public_path": "screenshots/ubol-baseline-read-error.png",
+      "public_sha256": "9c51ad56e1c12f1d34916458a7a6125c73d08c0d04ff15d8fe1077f0e553fe81",
+      "exact_bytes": true
+    },
+    {
+      "case": "patched-read-error",
+      "source": {
+        "task_relative_path": "ubol-browser-ueQrVG/patched-read-error.png",
+        "sha256": "380fd611bec679b6c9fbc68c952e6cc3a08fb0d7ba8524284d26383f1b7675de",
+        "bytes": 31069
+      },
+      "public_path": "screenshots/ubol-patched-read-error.png",
+      "public_sha256": "380fd611bec679b6c9fbc68c952e6cc3a08fb0d7ba8524284d26383f1b7675de",
+      "exact_bytes": true
+    },
+    {
+      "case": "baseline-valid-restore",
+      "source": {
+        "task_relative_path": "ubol-browser-ueQrVG/baseline-valid-restore.png",
+        "sha256": "7f3165a5b0a077799ae4dabc2978ff9e88c8530f2d58dd9413b2275a36da1d53",
+        "bytes": 30886
+      },
+      "public_path": "screenshots/ubol-valid-restore.png",
+      "public_sha256": "7f3165a5b0a077799ae4dabc2978ff9e88c8530f2d58dd9413b2275a36da1d53",
+      "exact_bytes": true
+    },
+    {
+      "case": "patched-valid-restore",
+      "source": {
+        "task_relative_path": "ubol-browser-ueQrVG/patched-valid-restore.png",
+        "sha256": "7f3165a5b0a077799ae4dabc2978ff9e88c8530f2d58dd9413b2275a36da1d53",
+        "bytes": 30886
+      },
+      "public_path": "screenshots/ubol-valid-restore.png",
+      "public_sha256": "7f3165a5b0a077799ae4dabc2978ff9e88c8530f2d58dd9413b2275a36da1d53",
+      "exact_bytes": true
+    },
+    {
+      "case": "baseline-confirmed-reset",
+      "source": {
+        "task_relative_path": "ubol-browser-ueQrVG/baseline-confirmed-reset.png",
+        "sha256": "61abc18fde87965835349f58091290cd6cccc4ffce2b00278be75f882b323af1",
+        "bytes": 30986
+      },
+      "public_path": "screenshots/ubol-confirmed-reset.png",
+      "public_sha256": "61abc18fde87965835349f58091290cd6cccc4ffce2b00278be75f882b323af1",
+      "exact_bytes": true
+    },
+    {
+      "case": "patched-confirmed-reset",
+      "source": {
+        "task_relative_path": "ubol-browser-ueQrVG/patched-confirmed-reset.png",
+        "sha256": "61abc18fde87965835349f58091290cd6cccc4ffce2b00278be75f882b323af1",
+        "bytes": 30986
+      },
+      "public_path": "screenshots/ubol-confirmed-reset.png",
+      "public_sha256": "61abc18fde87965835349f58091290cd6cccc4ffce2b00278be75f882b323af1",
+      "exact_bytes": true
+    }
+  ],
+  "original_to_public": [
+    {
+      "source": "adguard-optional-stealth-import.patch",
+      "source_sha256": "6154353ae7266b2ec9b0cff0c8d9a4ddb3f036e8f25854de37996d7b1cf36ca1",
+      "public_path": "patches/adguard-optional-stealth-import.patch",
+      "public_sha256": "6154353ae7266b2ec9b0cff0c8d9a4ddb3f036e8f25854de37996d7b1cf36ca1",
+      "kind": "exact_original_bytes"
+    },
+    {
+      "source": "ubol-settings-recovery.patch",
+      "source_sha256": "78640595d49f8f85bfe7e6a12d309aa253585048463a1cdbbe4b5370e9ad5996",
+      "public_path": "patches/ubol-settings-recovery.patch",
+      "public_sha256": "78640595d49f8f85bfe7e6a12d309aa253585048463a1cdbbe4b5370e9ad5996",
+      "kind": "exact_original_bytes"
+    },
+    {
+      "source": "AdguardBrowserExtension/LICENSE",
+      "source_sha256": "230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809",
+      "public_path": "licenses/adguard-GPL-3.0.txt",
+      "public_sha256": "230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809",
+      "kind": "exact_original_bytes"
+    },
+    {
+      "source": "uBlock/LICENSE.txt",
+      "source_sha256": "1b728b9ca80a6ea27fb9348c902dacf88b7fc7b12e22b693f4cb88bc8358985b",
+      "public_path": "licenses/ublock-GPL-3.0.txt",
+      "public_sha256": "1b728b9ca80a6ea27fb9348c902dacf88b7fc7b12e22b693f4cb88bc8358985b",
+      "kind": "exact_original_bytes"
+    },
+    {
+      "source": "adguard-implementation.json",
+      "source_sha256": "b64393f48c994515882a7fef665c5620257f6dfdab424b169e2668154c49c854",
+      "public_path": "verification/adguard-implementation.json",
+      "public_sha256": "8775e8bcceaaa30c712b4a924da13d38336bc3217a968b8b574b8b74fc4e6f97",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "ubol-implementation.json",
+      "source_sha256": "d56ab4c33d20846e69484954472011c255f986af7a6af79c0e504f2b7fea76f5",
+      "public_path": "verification/ubol-implementation.json",
+      "public_sha256": "a91af372ae72d0e789f881c7b91a81715f96feb014229d498c051774220b3986",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "adguard-patch-receipt.json",
+      "source_sha256": "82a3dc9c2efb17bf7c98bdbeca70d81c64b7def8731759cd950d6effdffca6de",
+      "public_path": "verification/adguard-patch-receipt.json",
+      "public_sha256": "89338152c59e1d222a6a27e7b58f93ccff1052440378d6736dfa3dd80d80a01c",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "adguard-preflight-red.json",
+      "source_sha256": "e059ede2c7fead8d1fe4266da409c6bc71c61f8a90a66925de490577ac24949e",
+      "public_path": "verification/adguard-preflight-red.json",
+      "public_sha256": "0ac469f55063eccadb1f5b22d34d3f7f4815cbfc2b93316065b930c2eda47b9e",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "adguard-preflight-green.json",
+      "source_sha256": "d95282245305084e793626fc3ff50c29333b52b8b36635a74244e1422df06115",
+      "public_path": "verification/adguard-preflight-green.json",
+      "public_sha256": "cd44a69420e7439add4e7b6ff9d95d6c41832dfc8483f1edc4bd9fb7c2cc4517",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "adguard-required-checks.json",
+      "source_sha256": "6cf8a24480722105287af4d5a06eee14deef44facb77badc2be22f44b1d53d5e",
+      "public_path": "verification/adguard-required-checks.json",
+      "public_sha256": "922cc30befed6067207c076cacbb658cf81e4c1f944c2d0b234f394f7fac313d",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "adguard-dependencies-attempt-2.json",
+      "source_sha256": "a063613b70bd81751c103b8d8edfd1e0f3c77f3c3d8dcc497771d444e49ca199",
+      "public_path": "verification/adguard-dependencies-attempt-2.json",
+      "public_sha256": "4028e80fcd1c0db7e18fdb3f593ba54e14a10d3e1b8af46f97643c8bc84c9131",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "adguard-toolchain.json",
+      "source_sha256": "aca8fbda6d0c72d634c30bf8eb072eb8f116032552defc1f4e9d6ae37260f59a",
+      "public_path": "verification/adguard-toolchain.json",
+      "public_sha256": "c7c00e4c5c6d17283716ec51d4dc3e0d0a5fcb80d8f45681b5a4869b4e92721a",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "ubol-patch-receipt.json",
+      "source_sha256": "93446783eec07c719a63104d3f07a3caf73e549e0e0f1ad061164c677b51320d",
+      "public_path": "verification/ubol-patch-receipt.json",
+      "public_sha256": "54292b0f00b8a999a20af0eb21d207c0e725455e597e4ae760818f3efd22eb83",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "ubol-red-receipt.json",
+      "source_sha256": "d713ad43f387317c2de71157728ee459b47d75474868db3ca2584a3f0aa02982",
+      "public_path": "verification/ubol-red-receipt.json",
+      "public_sha256": "7a8b845ddc433d8d1aadac749a4bbd4699b2c1d4ddf74b2d820d559f778b34f2",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "ubol-green-final-receipt.json",
+      "source_sha256": "51cef7ed185d0de3bd96e76d35ea52a5c3bba109d9e808ebf687176d2b6de058",
+      "public_path": "verification/ubol-green-final-receipt.json",
+      "public_sha256": "7e791b4c623aca15f7641ab776ec670a2f6d5b9ccfb0ec8d511b91ceca377165",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "ubol-package-dom-final-receipt.json",
+      "source_sha256": "bec67c1d7998ad9d69faeb56635b8ef92fbe34db63fd01f394379b964127e10b",
+      "public_path": "verification/ubol-package-dom-final-receipt.json",
+      "public_sha256": "7a0332c5ca87ecc78135e1ea3ec3dfd03643f10d0ebba24a414b3cbfc4260a6c",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "ubol-static-receipt.json",
+      "source_sha256": "8fa100f57e981719914fb9cf00187d9a93b35ae8c3b7d8e5362e05003ed45e3a",
+      "public_path": "verification/ubol-static-receipt.json",
+      "public_sha256": "ce8a99b90c86748e0e135faefc6a14795ae59ec017cb35be655cf4d270a9310a",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "ubol-lint-supplement-receipt.json",
+      "source_sha256": "f9e21f5dd235d9f47c1ffa9b78b4606f31277105a8a179bb63557669be8bac41",
+      "public_path": "verification/ubol-lint-supplement-receipt.json",
+      "public_sha256": "7a80613322a5fdce4205927d0d4fdea8a2c102b5f43240729ae420d72bb8bcdf",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "ubol-dependencies-supplement-receipt.json",
+      "source_sha256": "654edec3480f1075d5a612d74b81e933c97d753c395ebec9d5662aeb00bc5515",
+      "public_path": "verification/ubol-dependencies-supplement-receipt.json",
+      "public_sha256": "5343589dd3f52a9b7d1aac4f6be07edd8e143479984c83191f66d38f7255130b",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "ubol-verification-supplement.json",
+      "source_sha256": "1dfaf5392907da3ab6ec62cd74fb11502c7c7bf1db05ff24ebb34a8a9fb072a5",
+      "public_path": "verification/ubol-verification-supplement.json",
+      "public_sha256": "987ad72a62f6fdb32dcabff9e8f6ae7ff63b07446787327731e2a80260fb7cc0",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "ubol-browser-supplement-receipt.json",
+      "source_sha256": "a5d1fde5a1af13ae2aa9a8e27b653abdf763575f6647fb090e2c9e01ae51828e",
+      "public_path": "verification/ubol-browser-supplement-receipt.json",
+      "public_sha256": "161ff6bb5f85cc48176d2173281f5359715196c56d3eb2c09eed976c2810d6ad",
+      "kind": "sanitized_projection"
+    },
+    {
+      "source": "adguard-dependencies-attempt-2.log",
+      "source_sha256": "2ca79e1d315e8591a59659e94ecedc7273bbefb9b2d4bdef5998158240a05c6c",
+      "public_path": "verification/adguard-dependency-error.json",
+      "public_sha256": "a51e1bc447b71209e418fdf73e2028addc34fdae4e2616f2bbd4bf578fa2dc10",
+      "kind": "sanitized_log_projection"
+    },
+    {
+      "source": "adguard-required-lint.log",
+      "source_sha256": "af6cd8d0e074fd0c9d6f61bdfd9207815e465ba6691e70e8a0697a32a95742a4",
+      "public_path": "verification/adguard-required-lint-log.json",
+      "public_sha256": "4cfeb61642db4455e691cbda77d053d533e17d61338dc9dac3eea76155687391",
+      "kind": "sanitized_log_projection"
+    },
+    {
+      "source": "adguard-required-test.log",
+      "source_sha256": "2c8ba90c9aca773f1b9887ff83b15140713ce7f8d9b4dcecd452c0df98b9dba3",
+      "public_path": "verification/adguard-required-test-log.json",
+      "public_sha256": "02706c07be8aac682238b6af2a9d1c3de6a3db905653821137af684a95fd4edc",
+      "kind": "sanitized_log_projection"
+    },
+    {
+      "source": "ubol-red.tap",
+      "source_sha256": "e9f9362f4f60fab1a2594aa38a27355ab525624a07f3d418944469b18e7b0fa7",
+      "public_path": "verification/ubol-red-tap.json",
+      "public_sha256": "3510542d5bf41118c8f01a24b7eeb246554ab7093c9fa22c34fe3bf4e4dc4b99",
+      "kind": "sanitized_log_projection"
+    },
+    {
+      "source": "ubol-green-final.tap",
+      "source_sha256": "2dde6278f2a1fc5b6e3d415de4ca23cf148293d726ae5baac531bbc38a98ca86",
+      "public_path": "verification/ubol-green-final-tap.json",
+      "public_sha256": "c7a8b7771ce36ab75a95e9679fd2424d5a2a46c569d9756e42675b16ff411457",
+      "kind": "sanitized_log_projection"
+    },
+    {
+      "source": "ubol-package-dom-final.tap",
+      "source_sha256": "b83308f28fcc945a7b3cdc4c9d0faacc55518fe6235376f96a8df7fccb8ff420",
+      "public_path": "verification/ubol-package-dom-final-tap.json",
+      "public_sha256": "00f3655899dfcd17e2adb7310b961866aa8f6d0cf0ac5975254d1d6e77264d28",
+      "kind": "sanitized_log_projection"
+    },
+    {
+      "source": "ubol-upstream-lint-supplement.log",
+      "source_sha256": "f46466b3374b441c6550e4bdcab9dfd2f7fd05bb7a15015d96fa2e93ed63b8a9",
+      "public_path": "verification/ubol-upstream-lint-log.json",
+      "public_sha256": "2e47a40d5c566fbf5f59c86fe67f8d1f0092ef5a841a9c22667a2bfb688b5715",
+      "kind": "sanitized_log_projection"
+    },
+    {
+      "source": "ubol-browser-ueQrVG/baseline-read-error.png",
+      "source_sha256": "9c51ad56e1c12f1d34916458a7a6125c73d08c0d04ff15d8fe1077f0e553fe81",
+      "public_path": "screenshots/ubol-baseline-read-error.png",
+      "public_sha256": "9c51ad56e1c12f1d34916458a7a6125c73d08c0d04ff15d8fe1077f0e553fe81",
+      "kind": "exact_original_bytes"
+    },
+    {
+      "source": "ubol-browser-ueQrVG/patched-read-error.png",
+      "source_sha256": "380fd611bec679b6c9fbc68c952e6cc3a08fb0d7ba8524284d26383f1b7675de",
+      "public_path": "screenshots/ubol-patched-read-error.png",
+      "public_sha256": "380fd611bec679b6c9fbc68c952e6cc3a08fb0d7ba8524284d26383f1b7675de",
+      "kind": "exact_original_bytes"
+    },
+    {
+      "source": "ubol-browser-ueQrVG/baseline-valid-restore.png",
+      "source_sha256": "7f3165a5b0a077799ae4dabc2978ff9e88c8530f2d58dd9413b2275a36da1d53",
+      "public_path": "screenshots/ubol-valid-restore.png",
+      "public_sha256": "7f3165a5b0a077799ae4dabc2978ff9e88c8530f2d58dd9413b2275a36da1d53",
+      "kind": "exact_original_bytes"
+    },
+    {
+      "source": "ubol-browser-ueQrVG/baseline-confirmed-reset.png",
+      "source_sha256": "61abc18fde87965835349f58091290cd6cccc4ffce2b00278be75f882b323af1",
+      "public_path": "screenshots/ubol-confirmed-reset.png",
+      "public_sha256": "61abc18fde87965835349f58091290cd6cccc4ffce2b00278be75f882b323af1",
+      "kind": "exact_original_bytes"
+    },
+    {
+      "source": "ubol-browser-ueQrVG/distribution-sha256.json",
+      "source_sha256": "41dbd770c259e0ba2bb95886bc193496c015d1a211e9a20594563a1887ea91d4",
+      "public_path": "verification/ubol-distribution-sha256.json",
+      "public_sha256": "41dbd770c259e0ba2bb95886bc193496c015d1a211e9a20594563a1887ea91d4",
+      "kind": "exact_original_bytes"
+    },
+    {
+      "source": "adguard-verify-preflight.mjs",
+      "source_sha256": "40dc4eaf334cb1eb2ad8e10e26a7e0ee5780833d22dbc1da0676630df7aa4ece",
+      "public_path": "verification/harnesses/adguard-verify-preflight.mjs.txt",
+      "public_sha256": "3312c68d046639c03a31696d042cba030e44dc29ffbbef812baf1b16df030edf",
+      "kind": "verifier_reference_projection"
+    },
+    {
+      "source": "adguard-final-checks.mjs",
+      "source_sha256": "c173a4894febdd19523ebe6dd0eb60449e065209acfa768cb7ae9428ca5bf521",
+      "public_path": "verification/harnesses/adguard-final-checks.mjs.txt",
+      "public_sha256": "a6fab5cacab708e98aa8a6af57cdf6d0f883f3d5e953d02d27e4b66a728efa90",
+      "kind": "verifier_reference_projection"
+    },
+    {
+      "source": "ubol-verify.mjs",
+      "source_sha256": "75a64079461169bbd97620caaac02b895be5962d94c9ec130e37ef776438d818",
+      "public_path": "verification/harnesses/ubol-verify.mjs.txt",
+      "public_sha256": "84bfe9a320faaf9abd0c6f9ab52e54a4e94298dd086a66a6f5fe716d838ac260",
+      "kind": "verifier_reference_projection"
+    },
+    {
+      "source": "ubol-browser-supplement.mjs",
+      "source_sha256": "bf2f7ce66cc4045487ba17d43fc451045b37660fa9c6efe36ba25d340e943669",
+      "public_path": "verification/harnesses/ubol-browser-supplement.mjs.txt",
+      "public_sha256": "346d03ffacd39cec5e94e088d402206ef0abb5f96998d60f99cbfd1191127759",
+      "kind": "verifier_reference_projection"
+    },
+    {
+      "source": "ubol-lint-supplement.mjs",
+      "source_sha256": "de91ef984f91f7efea46ed6465208e984e6f0a9d516b17cf8f005c880dcb6fe0",
+      "public_path": "verification/harnesses/ubol-lint-supplement.mjs.txt",
+      "public_sha256": "873df885059d84821c01be246bfb4085978df8181296263f69442af538b2d9ce",
+      "kind": "verifier_reference_projection"
+    }
+  ],
+  "reference_gaps": [
+    "Preserved commands refer to the original task layout. Harnesses are .mjs.txt references, not executed or certified portable after path projection.",
+    "Dependencies, upstream checkout trees, browser binaries/profiles and fixture extension directories are not packaged. Reproduction needs separately provisioned matching versions.",
+    "Original helper and command logs can cite earlier task-owned receipt files that are not essential to this package; original source hashes and scope are retained.",
+    "The AdGuard comma-investigation.patch reference is historical and explicitly deferred; that exploratory patch is not included.",
+    "The uBO Lite static/red receipts use the earlier test hash; final greens and focused lint use the final explicit node:process-import test hash.",
+    "The original distribution inventory has 933 pre-launch files. The hash-bound read-only review observed 56 additional generated-index metadata files in each retained post-launch fixture directory; only the original inventory is packaged.",
+    "The supplement read-only findings were retained in the conversation and consolidated into verification/ubol-supplement-review.json during packaging. This review record binds the earlier observation and original artifact hashes; it does not represent a new browser or test execution."
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "ubol-verification-supplement.json",
+    "sha256": "1dfaf5392907da3ab6ec62cd74fb11502c7c7bf1db05ff24ebb34a8a9fb072a5",
+    "bytes": 14994
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [
+      "task",
+      "authorization",
+      "operation_intents",
+      "running_jobs",
+      "browser_operation_intent",
+      "documentation",
+      "dependency_result.shell_id",
+      "lint_result.shell_id",
+      "browser_result.shell_id"
+    ],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": [
+      "The 10 baseline matches are characterization outcomes including five stuck-busy failures, not product passes."
+    ]
+  },
+  "evidence": {
+    "schema_version": 1,
+    "status": "completed_focused_lint_and_isolated_chromium_verified_with_upstream_baseline_lint_failures",
+    "last_verified_at": "2026-11-22T15:15:35.137Z",
+    "repo": "${UBLOCK_ROOT}",
+    "base": "5934db2a0437a50182c4a8f3da2e0941cf806253",
+    "distribution_base": "7a2e2fa8b79395d38b2c6f9098754f0037b0f6a7",
+    "branch": "research/settings-enhancements",
+    "accepted_inputs": {
+      "platform/mv3/extension/js/settings.js": "a69076d6ea75665912ec49ea9a3836bd3d795cc584bd2c765b93ea833ee6afb3",
+      "platform/mv3/tests/settings-recovery.test.mjs": "a27254320ec8ba5ab496dfb1aeeb43ef778e395942db3c6601ef0d18c55016f5",
+      "package.json": "3d24bba28a121a9c15e7eb895a8534cacf296a779c51dde426dcf12d535f3b99",
+      "package-lock.json": "65e2d4ecd8520253d1c65c01502b38af0d47f8c0f3b2a13df3ef05f394bc3f11",
+      "../ubol-settings-recovery.patch": "78640595d49f8f85bfe7e6a12d309aa253585048463a1cdbbe4b5370e9ad5996"
+    },
+    "reused_evidence": [
+      "ubol-red-receipt.json",
+      "ubol-green-final-receipt.json",
+      "ubol-package-dom-final-receipt.json",
+      "ubol-patch-receipt.json"
+    ],
+    "completed_review": "The earlier independent review found no in-scope production problem; the explicit Node process import correction in the test is already included in accepted final hashes.",
+    "tooling_observation": {
+      "observed_at": "2026-11-22T15:00:28.299Z",
+      "node": "26.13.0",
+      "npm": "11.20.0",
+      "playwright": "1.65.1",
+      "playwright_cli": "0.1.25",
+      "chromium_executable": "${PLAYWRIGHT_BROWSER_ROOT}/chromium-1255/chrome-win64/chrome.exe",
+      "chromium_executable_exists": true,
+      "lockfile_version": 3,
+      "lockfile_package_count": 92,
+      "locked_eslint": "9.34.0",
+      "install_scripts": [],
+      "resolved_origins": [
+        "https://registry.npmjs.org"
+      ]
+    },
+    "dependency_result": {
+      "status": "verified",
+      "receipt": "ubol-dependencies-supplement-receipt.json",
+      "log": "ubol-dependencies-supplement.log",
+      "started_at": "2026-11-22T15:04:40.214Z",
+      "completed_at": "2026-11-22T15:04:50.853Z",
+      "exit_code": 0,
+      "installed_packages": 91,
+      "eslint": "9.34.0",
+      "accepted_inputs_unchanged": true,
+      "completion_consumed": true
+    },
+    "lint_result": {
+      "status": "focused_pass_full_baseline_failures",
+      "receipt": "ubol-lint-supplement-receipt.json",
+      "completed_at": "2026-11-22T15:08:35.188Z",
+      "eslint": "9.34.0",
+      "upstream_exit_code": 1,
+      "upstream_errors": 73,
+      "upstream_warnings": 0,
+      "focused_exit_code": 0,
+      "focused_errors": 0,
+      "focused_warnings": 0,
+      "baseline_settings_errors": 0,
+      "accepted_inputs_unchanged": true,
+      "attribution": "All full-command errors are no-undef for chrome/browser in unchanged tracked files. Only settings.js is a modified tracked file; it and the added .mjs regression passed explicit focused lint under the upstream configuration. No global configuration was changed to suppress the baseline diagnostics.",
+      "completion_consumed": true
+    },
+    "browser_result": {
+      "status": "verified_bounded_chromium_overlay",
+      "command": [
+        "${NODE_HOME}/node.exe",
+        "${TASK_ROOT}/ubol-browser-supplement.mjs"
+      ],
+      "cwd": "${UBLOCK_ROOT}",
+      "started_at": "2026-11-22T15:13:34.030Z",
+      "completed_at": "2026-11-22T15:14:13.728Z",
+      "exit_code": 0,
+      "completion_consumed": true,
+      "receipt": "ubol-browser-supplement-receipt.json",
+      "receipt_sha256": "a5d1fde5a1af13ae2aa9a8e27b653abdf763575f6647fb090e2c9e01ae51828e",
+      "node": "26.13.0",
+      "playwright": "1.65.1",
+      "chromium": "159.0.8154.6",
+      "distribution_version": "2026.1116.1650",
+      "headless": true,
+      "viewport": {
+        "width": 1280,
+        "height": 960
+      },
+      "offline": true,
+      "work_directory": "${TASK_ROOT}/ubol-browser-ueQrVG",
+      "distribution_files": 933,
+      "distribution_inventory": "ubol-browser-ueQrVG/distribution-sha256.json",
+      "distribution_inventory_sha256": "41dbd770c259e0ba2bb95886bc193496c015d1a211e9a20594563a1887ea91d4",
+      "baseline_copy_differences": [],
+      "patched_copy_differences": [
+        "js/settings.js"
+      ],
+      "baseline_settings_sha256": "6c368befdf7c623859126f5c4be90c814604cbfa16580899b22e933ef37574b5",
+      "patched_settings_sha256": "a69076d6ea75665912ec49ea9a3836bd3d795cc584bd2c765b93ea833ee6afb3",
+      "baseline_cases": 10,
+      "baseline_expected_outcomes_matched": 10,
+      "baseline_stuck_busy_cases": [
+        "read-error",
+        "native-read-abort",
+        "read-synchronous-throw",
+        "restore-storage-rejection",
+        "reset-storage-rejection"
+      ],
+      "patched_cases": 10,
+      "patched_passed": 10,
+      "patched_failed": 0,
+      "patched_stuck_busy_cases": [],
+      "patched_uncaught_page_errors": 0,
+      "patched_unhandled_rejections": 0,
+      "preserved_success_cases": [
+        "valid-restore",
+        "empty-file-selection",
+        "invalid-json",
+        "confirmed-reset",
+        "cancelled-reset"
+      ],
+      "interaction_evidence": "Restore button clicks emitted native filechooser events; valid files were read with native FileReader. Reset emitted native confirm dialogs, tested with accept and dismiss. Successful paths used the actual extension service worker and local storage in the new profiles.",
+      "fault_injection": "Read errors and synchronous read exceptions were injected at the page FileReader boundary; abort called native FileReader.abort(). Storage rejection replaced only the extension page's chrome.storage.local.remove for userDnrRules. The baseline remained busy; the accepted patch reported the error and released busy.",
+      "native_abort_observation": "Chromium produced an AbortError which the patched code reported and handled. This supplements the host-DOM fixture's null-result abort case; both recovery paths leave the dashboard usable.",
+      "rollback_boundary": "The storage-rejection cases observed earlier preference changes already applied. Recovery of the dashboard is verified; atomicity, rollback and preservation of all previous settings are not claimed.",
+      "accepted_inputs_unchanged": true,
+      "read_only_distribution_unchanged": true,
+      "cleanup": {
+        "baseline": {
+          "context_close_event": true,
+          "browser_connected_after_close": false,
+          "profile_removed": true,
+          "profile_absent_at_handoff": true
+        },
+        "patched": {
+          "context_close_event": true,
+          "browser_connected_after_close": false,
+          "profile_removed": true,
+          "profile_absent_at_handoff": true
+        },
+        "verified_at": "2026-11-22T15:15:35.137Z",
+        "retained": "Task-owned extension copies, distribution inventory and screenshots remain as evidence; both disposable browser profiles were removed."
+      }
+    },
+    "screenshots": [
+      {
+        "case": "baseline-read-error",
+        "path": "ubol-browser-ueQrVG/baseline-read-error.png",
+        "sha256": "9c51ad56e1c12f1d34916458a7a6125c73d08c0d04ff15d8fe1077f0e553fe81",
+        "reviewed": true,
+        "observation": "The normal settings section is hidden and the dashboard shows the busy spinner after the terminal read error."
+      },
+      {
+        "case": "patched-read-error",
+        "path": "ubol-browser-ueQrVG/patched-read-error.png",
+        "sha256": "380fd611bec679b6c9fbc68c952e6cc3a08fb0d7ba8524284d26383f1b7675de",
+        "reviewed": true,
+        "observation": "Settings and backup/restore controls are visible after the same terminal read error."
+      },
+      {
+        "case": "baseline-valid-restore",
+        "path": "ubol-browser-ueQrVG/baseline-valid-restore.png",
+        "sha256": "7f3165a5b0a077799ae4dabc2978ff9e88c8530f2d58dd9413b2275a36da1d53"
+      },
+      {
+        "case": "patched-valid-restore",
+        "path": "ubol-browser-ueQrVG/patched-valid-restore.png",
+        "sha256": "7f3165a5b0a077799ae4dabc2978ff9e88c8530f2d58dd9413b2275a36da1d53"
+      },
+      {
+        "case": "baseline-confirmed-reset",
+        "path": "ubol-browser-ueQrVG/baseline-confirmed-reset.png",
+        "sha256": "61abc18fde87965835349f58091290cd6cccc4ffce2b00278be75f882b323af1"
+      },
+      {
+        "case": "patched-confirmed-reset",
+        "path": "ubol-browser-ueQrVG/patched-confirmed-reset.png",
+        "sha256": "61abc18fde87965835349f58091290cd6cccc4ffce2b00278be75f882b323af1"
+      }
+    ],
+    "artifact_hashes": {
+      "ubol-dependencies-supplement-receipt.json": "654edec3480f1075d5a612d74b81e933c97d753c395ebec9d5662aeb00bc5515",
+      "ubol-lint-supplement-receipt.json": "f9e21f5dd235d9f47c1ffa9b78b4606f31277105a8a179bb63557669be8bac41",
+      "ubol-browser-supplement-receipt.json": "a5d1fde5a1af13ae2aa9a8e27b653abdf763575f6647fb090e2c9e01ae51828e",
+      "ubol-install-lint-deps.mjs": "944e103e79e3d8f005f671201c2e62e95040b4e69fb226ba7903033be5dfe4e4",
+      "ubol-lint-supplement.mjs": "de91ef984f91f7efea46ed6465208e984e6f0a9d516b17cf8f005c880dcb6fe0",
+      "ubol-browser-supplement.mjs": "bf2f7ce66cc4045487ba17d43fc451045b37660fa9c6efe36ba25d340e943669",
+      "ubol-green-final-receipt.json": "51cef7ed185d0de3bd96e76d35ea52a5c3bba109d9e808ebf687176d2b6de058",
+      "ubol-package-dom-final-receipt.json": "bec67c1d7998ad9d69faeb56635b8ef92fbe34db63fd01f394379b964127e10b"
+    },
+    "handoff": {
+      "status": "complete_with_recorded_upstream_lint_failures",
+      "production_patch_changed": false,
+      "new_production_findings": [],
+      "dependency_install": "Completed from the existing lockfile; 91 packages installed, with manifest, lockfile and accepted patch hashes unchanged.",
+      "focused_lint": "Passed for settings.js and the regression test using locked ESLint 9.34.0 and the upstream configuration.",
+      "upstream_lint": "Executed, exit 1: 73 existing no-undef diagnostics in unchanged tracked files. No full-project lint pass is claimed.",
+      "real_browser": "Completed: 10 patched cases passed in disposable headless Chromium, with 10 baseline characterization cases confirming five prior stuck-busy failures.",
+      "earlier_dom_evidence": "The accepted 13/13 source-DOM and 13/13 distribution-overlay checks were retained without replay.",
+      "next_action": "Parent integrates this supplement and its receipt/screenshot references with the accepted unchanged patch. No running jobs or environment recovery remain."
+    },
+    "recovery_budget": "Completed on the first locked dependency installation and the first isolated browser run; no environment retries were required.",
+    "limitations": [
+      "Full upstream lint still reports 73 baseline errors; the focused changed-file checks pass. This supplement does not fix unrelated upstream globals configuration.",
+      "The real-browser input is the pinned Chromium distribution with only settings.js overlaid, not a rebuilt or signed release package.",
+      "The real-browser checks use disposable headless Chromium 159.0.8154.6. They do not validate the user's installed version, personal profile, Safari, Firefox, or cross-browser parity.",
+      "FileChooser and confirm events were exercised through Playwright; a visible native OS file-dialog cancel button was not exercised. Empty selection and reset dismissal were covered.",
+      "Read-error and storage-failure conditions were controlled fault injection; successful paths used actual extension runtime/local storage and the abort test called native FileReader.abort(). Dynamic module-load rejection remains covered by the earlier host-DOM tests only.",
+      "Sequential restore remains nontransactional. The browser storage-failure case demonstrates that earlier setting changes can already be applied; no rollback or complete protection-preservation guarantee is established.",
+      "No filter effectiveness, network/cohort audit, full filter rebuild, upstream publication, or installed/personal browser mutation was performed in this supplement.",
+      "npm test is an explicit failing placeholder and is not a verification suite."
+    ]
+  }
+}

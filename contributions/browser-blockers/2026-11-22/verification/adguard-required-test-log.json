@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_log_projection",
+  "source": {
+    "task_relative_path": "adguard-required-test.log",
+    "sha256": "2c8ba90c9aca773f1b9887ff83b15140713ce7f8d9b4dcecd452c0df98b9dba3",
+    "bytes": 319
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_path_redaction": true,
+    "execution_identity_redaction": true,
+    "private_endpoint_redaction": true,
+    "not_reexecuted": true,
+    "hash_semantics": "source.sha256 identifies the original raw log; this projection has its own public-file hash in the inventory.",
+    "selection": "Complete log with only host-path and execution-identity projection.",
+    "selected_source_lines": null
+  },
+  "evidence": {
+    "format": "command-output",
+    "summary": {
+      "exit_code": 1,
+      "checks_executed": false,
+      "reason": "vitest executable unavailable after blocked frozen install"
+    },
+    "content": "\n> browser-extension@5.6.0+4.build.1 test ${ADGUARD_ROOT}\n> vitest run\n\n'vitest' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n ELIFECYCLE  Test failed. See above for more details.\n"
+  }
+}

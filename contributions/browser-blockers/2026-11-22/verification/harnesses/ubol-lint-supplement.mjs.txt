@@ -1,0 +1,77 @@
+/* {"kind":"verifier_source_reference_projection","source":{"task_relative_path":"ubol-lint-supplement.mjs","sha256":"de91ef984f91f7efea46ed6465208e984e6f0a9d516b17cf8f005c880dcb6fe0","bytes":4522},"host_path_redaction":true,"execution_identity_redaction":true,"private_endpoint_redaction":true,"not_reexecuted":true,"executable_as_packaged":false,"note":"Text reference only. Restore original task-relative layout and replace symbolic roots before any separately authorized reproduction."} */
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+
+const root = new URL('./', import.meta.url);
+const cwd = fileURLToPath(new URL('uBlock/', root));
+const base = '5934db2a0437a50182c4a8f3da2e0941cf806253';
+const files = [
+    'platform/mv3/extension/js/settings.js',
+    'platform/mv3/tests/settings-recovery.test.mjs',
+];
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const accepted = JSON.parse(readFileSync(new URL('ubol-verification-supplement.json', root), 'utf8')).accepted_inputs;
+const hashes = () => Object.fromEntries(Object.keys(accepted).map(path => [
+    path, digest(readFileSync(`${cwd}/${path}`)),
+]));
+const before = hashes();
+for ( const [ path, hash ] of Object.entries(before) ) {
+    if ( hash !== accepted[path] ) { throw new Error(`Input changed: ${path}`); }
+}
+const commands = [];
+function run(id, executable, args) {
+    const startedAt = new Date().toISOString();
+    const result = spawnSync(executable, args, {
+        cwd, encoding: 'utf8', timeout: 90000, maxBuffer: 16 * 1024 * 1024,
+    });
+    const outputPath = fileURLToPath(new URL(`ubol-${id}.log`, root));
+    writeFileSync(outputPath, `${result.stdout ?? ''}${result.stderr ?? ''}`);
+    commands.push({
+        id, executable, args, cwd, started_at: startedAt,
+        completed_at: new Date().toISOString(), exit_code: result.status,
+        signal: result.signal, error: result.error?.message ?? null, output_path: outputPath,
+    });
+    return result;
+}
+const head = run('lint-head', 'git', [ 'rev-parse', 'HEAD' ]).stdout.trim();
+if ( head !== base ) { throw new Error('Unexpected HEAD'); }
+const full = run('upstream-lint-supplement', process.execPath, [
+    '${NODE_HOME}/node_modules/npm/bin/npm-cli.js', 'run', 'lint',
+]);
+const focused = run('focused-lint-supplement', process.execPath, [
+    'node_modules/eslint/bin/eslint.js', '--no-warn-ignored', '--format', 'json', '--', ...files,
+]);
+const focusedResults = JSON.parse(focused.stdout);
+const baselineSource = run('lint-baseline-settings', 'git', [ 'show', `${base}:${files[0]}` ]);
+if ( baselineSource.status !== 0 ) { throw new Error('Cannot read pinned baseline'); }
+const { ESLint } = createRequire(new URL('uBlock/package.json', root))('eslint');
+const eslint = new ESLint({ cwd });
+const baseline = await eslint.lintText(baselineSource.stdout, { filePath: `${cwd}/${files[0]}` });
+const dirty = run('lint-dirty', 'git', [ 'status', '--porcelain' ]).stdout.trimEnd();
+const changedTracked = run('lint-changed-tracked', 'git', [ 'diff', '--name-only', base ]).stdout.trim().split(/\r?\n/).filter(Boolean);
+const after = hashes();
+const receipt = {
+    observed_at: new Date().toISOString(), cwd, base, head,
+    node: process.version, eslint: ESLint.version,
+    hashes_before: before, hashes_after: after,
+    accepted_inputs_unchanged: JSON.stringify(before) === JSON.stringify(after),
+    commands, dirty_state: dirty, changed_tracked_files: changedTracked,
+    upstream_lint_exit_code: full.status, focused_lint_exit_code: focused.status,
+    focused_results: focusedResults, baseline_settings_results: baseline,
+    baseline_settings_sha256: digest(baselineSource.stdout),
+    attribution: 'Only settings.js is a modified tracked file; the new regression test is checked explicitly because the upstream command omits .mjs. Diagnostics outside modified files are on pinned unchanged inputs. Baseline settings was linted in memory using the same ESLint configuration; no source file was restored or changed.',
+};
+writeFileSync(new URL('ubol-lint-supplement-receipt.json', root), JSON.stringify(receipt, null, 2) + '\n');
+console.log(JSON.stringify({
+    upstream_lint_exit_code: full.status,
+    upstream_output: `${full.stdout ?? ''}${full.stderr ?? ''}`,
+    focused_lint_exit_code: focused.status,
+    focused_results: focusedResults.map(({ filePath, messages, errorCount, warningCount }) => ({ filePath, messages, errorCount, warningCount })),
+    baseline_settings: baseline.map(({ messages, errorCount, warningCount }) => ({ messages, errorCount, warningCount })),
+    accepted_inputs_unchanged: receipt.accepted_inputs_unchanged,
+    receipt: fileURLToPath(new URL('ubol-lint-supplement-receipt.json', root)),
+}, null, 2));
+process.exitCode = receipt.accepted_inputs_unchanged && full.status === 0 && focused.status === 0 ? 0 : 1;

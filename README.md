@@ -51,10 +51,18 @@ Workspace-relative links to the single-source OKF notes:
 - [Design](../../../../../docs/okf/filter-observatory/design.md)
 - [Module interfaces](../../../../../docs/okf/filter-observatory/module-contracts.md)
 - [Verification and continuation](../../../../../docs/okf/filter-observatory/tasks/2026-11-21-initial-delivery.md)
+- [AdGuard and uBO Lite comparison](../../../../../docs/okf/filter-observatory/research/browser-blocker-comparison.md)
+- [Blocker contribution evidence](../../../../../docs/okf/filter-observatory/research/browser-blocker-contributions.md)
+- [Dated patches and verification receipts](contributions/browser-blockers/2026-11-22/manifest.json)
 
 ## License
 
 [MIT](LICENSE)
+
+The separately identified upstream patches in `contributions/browser-blockers/`
+retain their original GPL-3.0-or-later terms and notices. The project's MIT license
+does not relicense those contributions; each dated artifact set includes attribution
+and upstream license texts.
 
 <footer class="hire-me">
   <h3>Hire me</h3>

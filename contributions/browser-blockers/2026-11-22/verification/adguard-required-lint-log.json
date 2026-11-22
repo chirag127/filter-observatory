@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_log_projection",
+  "source": {
+    "task_relative_path": "adguard-required-lint.log",
+    "sha256": "af6cd8d0e074fd0c9d6f61bdfd9207815e465ba6691e70e8a0697a32a95742a4",
+    "bytes": 679
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_path_redaction": true,
+    "execution_identity_redaction": true,
+    "private_endpoint_redaction": true,
+    "not_reexecuted": true,
+    "hash_semantics": "source.sha256 identifies the original raw log; this projection has its own public-file hash in the inventory.",
+    "selection": "Complete log with only host-path and execution-identity projection.",
+    "selected_source_lines": null
+  },
+  "evidence": {
+    "format": "command-output",
+    "summary": {
+      "exit_code": 1,
+      "checks_executed": false,
+      "reason": "eslint executable unavailable after blocked frozen install"
+    },
+    "content": "\n> browser-extension@5.6.0+4.build.1 lint ${ADGUARD_ROOT}\n> pnpm lint:code && pnpm lint:types\n\n\n> browser-extension@5.6.0+4.build.1 lint:code ${ADGUARD_ROOT}\n> eslint --cache --cache-location .cache/eslint/.eslintcache --cache-strategy content --max-warnings=0 --ext .jsx,.js,.cjs,.mjs,.tsx,.ts .\n\n'eslint' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n ELIFECYCLE  Command failed with exit code 1.\n ELIFECYCLE  Command failed with exit code 1.\n"
+  }
+}

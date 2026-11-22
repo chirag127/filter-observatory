@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "ubol-patch-receipt.json",
+    "sha256": "93446783eec07c719a63104d3f07a3caf73e549e0e0f1ad061164c677b51320d",
+    "bytes": 4156
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": [
+      "The referenced static receipt binds unchanged production source but an earlier test hash. Final source/overlay green and focused lint receipts bind the final regression-test bytes."
+    ]
+  },
+  "evidence": {
+    "observed_at": "2026-11-22T14:51:44.122Z",
+    "cwd": "${UBLOCK_ROOT}/",
+    "head": "5934db2a0437a50182c4a8f3da2e0941cf806253",
+    "branch": "research/settings-enhancements",
+    "dirty_state": " M platform/mv3/extension/js/settings.js\n?? platform/mv3/tests/",
+    "patch": "${TASK_ROOT}/ubol-settings-recovery.patch",
+    "patch_sha256": "78640595d49f8f85bfe7e6a12d309aa253585048463a1cdbbe4b5370e9ad5996",
+    "patch_bytes": 17898,
+    "input_sha256": {
+      "platform/mv3/extension/js/settings.js": "a69076d6ea75665912ec49ea9a3836bd3d795cc584bd2c765b93ea833ee6afb3",
+      "platform/mv3/tests/settings-recovery.test.mjs": "a27254320ec8ba5ab496dfb1aeeb43ef778e395942db3c6601ef0d18c55016f5"
+    },
+    "verification_receipts_matched": [
+      "ubol-green-final-receipt.json",
+      "ubol-package-dom-final-receipt.json",
+      "ubol-static-receipt.json"
+    ],
+    "reverse_apply_check": {
+      "exit_code": 0,
+      "output": ""
+    },
+    "commands": [
+      {
+        "executable": "git",
+        "args": [
+          "rev-parse",
+          "HEAD"
+        ],
+        "cwd": "${UBLOCK_ROOT}/",
+        "started_at": "2026-11-22T14:51:43.543Z",
+        "finished_at": "2026-11-22T14:51:43.643Z",
+        "exit_code": 0,
+        "error": null,
+        "stderr": ""
+      },
+      {
+        "executable": "git",
+        "args": [
+          "branch",
+          "--show-current"
+        ],
+        "cwd": "${UBLOCK_ROOT}/",
+        "started_at": "2026-11-22T14:51:43.643Z",
+        "finished_at": "2026-11-22T14:51:43.737Z",
+        "exit_code": 0,
+        "error": null,
+        "stderr": ""
+      },
+      {
+        "executable": "git",
+        "args": [
+          "status",
+          "--porcelain"
+        ],
+        "cwd": "${UBLOCK_ROOT}/",
+        "started_at": "2026-11-22T14:51:43.737Z",
+        "finished_at": "2026-11-22T14:51:43.838Z",
+        "exit_code": 0,
+        "error": null,
+        "stderr": ""
+      },
+      {
+        "executable": "git",
+        "args": [
+          "diff",
+          "--no-ext-diff",
+          "--binary",
+          "HEAD",
+          "--",
+          "platform/mv3/extension/js/settings.js"
+        ],
+        "cwd": "${UBLOCK_ROOT}/",
+        "started_at": "2026-11-22T14:51:43.838Z",
+        "finished_at": "2026-11-22T14:51:43.933Z",
+        "exit_code": 0,
+        "error": null,
+        "stderr": "warning: in the working copy of 'platform/mv3/extension/js/settings.js', LF will be replaced by CRLF the next time Git touches it\n"
+      },
+      {
+        "executable": "git",
+        "args": [
+          "diff",
+          "--no-index",
+          "--",
+          "NUL",
+          "platform/mv3/tests/settings-recovery.test.mjs"
+        ],
+        "cwd": "${UBLOCK_ROOT}/",
+        "started_at": "2026-11-22T14:51:43.933Z",
+        "finished_at": "2026-11-22T14:51:44.026Z",
+        "exit_code": 1,
+        "error": null,
+        "stderr": "warning: in the working copy of 'platform/mv3/tests/settings-recovery.test.mjs', LF will be replaced by CRLF the next time Git touches it\n"
+      },
+      {
+        "executable": "git",
+        "args": [
+          "apply",
+          "--check",
+          "--reverse",
+          "${TASK_ROOT}/ubol-settings-recovery.patch"
+        ],
+        "cwd": "${UBLOCK_ROOT}/",
+        "started_at": "2026-11-22T14:51:44.028Z",
+        "finished_at": "2026-11-22T14:51:44.122Z",
+        "exit_code": 0,
+        "error": null,
+        "stderr": ""
+      }
+    ],
+    "scope": "Read-only Git inspection and reverse apply --check; only the derived patch and this receipt are written. No staging, commits, configuration changes or remote writes."
+  }
+}

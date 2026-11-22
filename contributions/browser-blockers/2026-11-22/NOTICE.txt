@@ -1,0 +1,25 @@
+AdGuard Browser Extension and uBlock Origin Lite contribution patches
+Modification date: 22 November 2026
+Contributor: Chirag Singhal (https://github.com/chirag127)
+
+AdGuard Browser Extension
+Copyright (c) 2015-2026 Adguard Software Ltd.
+Source: https://github.com/AdguardTeam/AdguardBrowserExtension
+Baseline: 6beedf03743d53691162a11541360071cce5e55a
+Change: accept an absent optional stealth section in JSON-import preflight.
+License: GNU General Public License version 3 or, at your option, any later version.
+The original license text is retained in licenses/adguard-GPL-3.0.txt.
+
+uBlock Origin Lite
+Copyright (C) 2014-present Raymond Hill
+Source: https://github.com/gorhill/uBlock (platform/mv3)
+Baseline: 5934db2a0437a50182c4a8f3da2e0941cf806253
+Change: recover settings UI after failed or aborted restore/reset operations.
+License: GNU General Public License version 3 or, at your option, any later version.
+The original license text is retained in licenses/ublock-GPL-3.0.txt.
+
+The production-file copyright and GPL notices are unchanged by the patches.
+The patches and their regression tests are distributed under GPL-3.0-or-later,
+without warranty. Filter Observatory's MIT license does not relicense them.
+Verification receipts describe their stated checks, not upstream acceptance,
+installed releases, transactional rollback or comparative blocking effectiveness.

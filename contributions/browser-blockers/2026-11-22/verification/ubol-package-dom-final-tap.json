@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_log_projection",
+  "source": {
+    "task_relative_path": "ubol-package-dom-final.tap",
+    "sha256": "b83308f28fcc945a7b3cdc4c9d0faacc55518fe6235376f96a8df7fccb8ff420",
+    "bytes": 2710
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_path_redaction": true,
+    "execution_identity_redaction": true,
+    "private_endpoint_redaction": true,
+    "not_reexecuted": true,
+    "hash_semantics": "source.sha256 identifies the original raw log; this projection has its own public-file hash in the inventory.",
+    "selection": "Complete log with only host-path and execution-identity projection.",
+    "selected_source_lines": null
+  },
+  "evidence": {
+    "format": "tap",
+    "summary": {
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "content": "TAP version 13\n# (node:<process-id-removed>) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: valid restore applies settings and leaves the dashboard usable\nok 1 - valid restore applies settings and leaves the dashboard usable\n  ---\n  duration_ms: 219.2308\n  type: 'test'\n  ...\n# Subtest: cancel restore (cancel event) preserves settings\nok 2 - cancel restore (cancel event) preserves settings\n  ---\n  duration_ms: 61.969\n  type: 'test'\n  ...\n# Subtest: cancel restore (empty selection) preserves settings\nok 3 - cancel restore (empty selection) preserves settings\n  ---\n  duration_ms: 55.4689\n  type: 'test'\n  ...\n# Subtest: file read error leaves the dashboard usable and permits another restore\nok 4 - file read error leaves the dashboard usable and permits another restore\n  ---\n  duration_ms: 57.0878\n  type: 'test'\n  ...\n# Subtest: file read abort leaves the dashboard usable and permits another restore\nok 5 - file read abort leaves the dashboard usable and permits another restore\n  ---\n  duration_ms: 56.2377\n  type: 'test'\n  ...\n# Subtest: file read throw leaves the dashboard usable and permits another restore\nok 6 - file read throw leaves the dashboard usable and permits another restore\n  ---\n  duration_ms: 59.012\n  type: 'test'\n  ...\n# Subtest: invalid JSON does not apply settings or retain busy state\nok 7 - invalid JSON does not apply settings or retain busy state\n  ---\n  duration_ms: 47.069\n  type: 'test'\n  ...\n# Subtest: restore module rejection is handled and releases busy state\nok 8 - restore module rejection is handled and releases busy state\n  ---\n  duration_ms: 48.079\n  type: 'test'\n  ...\n# Subtest: restore storage rejection is handled and releases busy state\nok 9 - restore storage rejection is handled and releases busy state\n  ---\n  duration_ms: 59.6617\n  type: 'test'\n  ...\n# Subtest: confirmed reset applies defaults and leaves the dashboard usable\nok 10 - confirmed reset applies defaults and leaves the dashboard usable\n  ---\n  duration_ms: 52.0847\n  type: 'test'\n  ...\n# Subtest: cancelled reset preserves settings\nok 11 - cancelled reset preserves settings\n  ---\n  duration_ms: 42.3876\n  type: 'test'\n  ...\n# Subtest: reset failImport is handled and releases busy state\nok 12 - reset failImport is handled and releases busy state\n  ---\n  duration_ms: 59.4209\n  type: 'test'\n  ...\n# Subtest: reset failStorage is handled and releases busy state\nok 13 - reset failStorage is handled and releases busy state\n  ---\n  duration_ms: 49.831\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3612.7304\n"
+  }
+}

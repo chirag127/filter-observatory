@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "adguard-toolchain.json",
+    "sha256": "aca8fbda6d0c72d634c30bf8eb072eb8f116032552defc1f4e9d6ae37260f59a",
+    "bytes": 949
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": []
+  },
+  "evidence": {
+    "started_at": "2026-11-22T14:21:33.1772476Z",
+    "node_source": "https://nodejs.org/dist/v22.23.5/win-x64/node.exe",
+    "node_sha256_source": "https://nodejs.org/dist/v22.23.5/SHASUMS256.txt",
+    "expected_node_sha256": "247e9693d316da9857e44990e5e11709f596f18112251b8026ec6eed80bdf38a",
+    "pnpm_source": "https://registry.npmjs.org/pnpm/-/pnpm-10.33.4.tgz",
+    "pnpm_integrity_source": "https://registry.npmjs.org/pnpm/10.33.4",
+    "expected_pnpm_integrity": "sha512-HGezs1my1AgRm6HtKJ80uPw8aHNBK+xv0mT73IJInlEPy+y5zp0i2ufzt2Jp2EQQRgFL3KU7mXnNelYa1jG4AA==",
+    "outcome": "verified",
+    "node_sha256": "247e9693d316da9857e44990e5e11709f596f18112251b8026ec6eed80bdf38a",
+    "pnpm_integrity": "sha512-HGezs1my1AgRm6HtKJ80uPw8aHNBK+xv0mT73IJInlEPy+y5zp0i2ufzt2Jp2EQQRgFL3KU7mXnNelYa1jG4AA==",
+    "node_version": "v22.23.5",
+    "pnpm_version": "10.33.4",
+    "finished_at": "2026-11-22T14:25:18.8782642Z"
+  }
+}

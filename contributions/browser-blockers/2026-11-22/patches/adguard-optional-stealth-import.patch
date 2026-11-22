@@ -1,0 +1,125 @@
+diff --git a/Extension/src/pages/options/components/General/General.tsx b/Extension/src/pages/options/components/General/General.tsx
+index dd5f93cee6af3e31c681262fa678fbee44c3528d..c4d1ce8b9fcd0b05bbabea78b68994b45a1494a0 100644
+--- a/Extension/src/pages/options/components/General/General.tsx
++++ b/Extension/src/pages/options/components/General/General.tsx
+@@ -122,6 +122,11 @@ const AllowAcceptableAds = 'allowAcceptableAds';
+ const getBlockWebRtcSetting = (content: string): boolean => {
+     const json: unknown = JSON.parse(content);
+ 
++    // Tracking protection is optional in the settings schema.
++    if (Unknown.get(json, 'stealth') === undefined) {
++        return false;
++    }
++
+     const blockWebRtc = Unknown.get(json, 'stealth.stealth-block-webrtc');
+ 
+     if (typeof blockWebRtc !== 'boolean') {
+diff --git a/tests/src/pages/options/components/General/General.test.tsx b/tests/src/pages/options/components/General/General.test.tsx
+index 0b932f3c0470d376138fcc202c036a55ab4bdd1c..f119027e016feeb5b51f0fd5bd44717dabe4bb9d 100644
+--- a/tests/src/pages/options/components/General/General.test.tsx
++++ b/tests/src/pages/options/components/General/General.test.tsx
+@@ -36,6 +36,9 @@ import {
+     vi,
+ } from 'vitest';
+ 
++import { getDefaultExportFixture } from '../../../../../helpers/fixtures/getDefaultExportFixture';
++import { configValidator } from '../../../../../../Extension/src/background/schema';
++
+ // --- Hoisted mock functions (configurable per test) ---
+ 
+ const mocks = vi.hoisted(() => ({
+@@ -304,6 +307,49 @@ describe('General - Import settings with stealth-block-webrtc', () => {
+         fireEvent.click(confirmButton);
+     };
+ 
++    describe('Import without the optional stealth section', () => {
++        it('applies settings without requesting privacy permission', async () => {
++            const config = getDefaultExportFixture(__IS_MV3__);
++            delete config.stealth;
++            expect(configValidator.safeParse(config).success).toBe(true);
++            const content = JSON.stringify(config);
++            const {
++                applySettingsJsonMock,
++                addNotificationMock,
++                hasPrivacyMock,
++                ensurePermissionMock,
++            } = await setupAndRender();
++
++            await triggerImport(content);
++
++            await waitFor(() => {
++                expect(addNotificationMock).toHaveBeenCalledWith(expect.objectContaining({
++                    type: 'success',
++                    text: 'options_popup_import_success_title',
++                }));
++            });
++            expect(applySettingsJsonMock).toHaveBeenCalledTimes(1);
++            expect(applySettingsJsonMock).toHaveBeenCalledWith(content);
++            expect(hasPrivacyMock).not.toHaveBeenCalled();
++            expect(ensurePermissionMock).not.toHaveBeenCalled();
++        });
++
++        it('reports backend validation failure without showing success', async () => {
++            const { addNotificationMock } = await setupAndRender({ applySettingsJsonResult: false });
++
++            await triggerImport('{}');
++
++            await waitFor(() => {
++                expect(addNotificationMock).toHaveBeenCalledWith(expect.objectContaining({
++                    type: 'error',
++                    text: 'options_popup_import_error_title',
++                }));
++            });
++            expect(mocks.applySettingsJson).toHaveBeenCalledWith('{}');
++            expect(addNotificationMock).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'success' }));
++        });
++    });
++
+     describe('Import with stealth.stealth-block-webrtc = false', () => {
+         it('should apply settings immediately', async () => {
+             const content = buildSettingsJson(false);
+@@ -486,27 +532,26 @@ describe('General - Import settings with stealth-block-webrtc', () => {
+     });
+ 
+     describe('Invalid JSON / unparsable stealth.stealth-block-webrtc', () => {
+-        it('should show import error notification', async () => {
+-            const invalidContent = JSON.stringify({
+-                stealth: {
+-                    'stealth-block-webrtc': 'not-a-boolean',
+-                },
+-            });
++        it.each([null, {}, { 'stealth-block-webrtc': 'not-a-boolean' }])(
++            'rejects an invalid present stealth section: %j',
++            async (stealth) => {
++                const invalidContent = JSON.stringify({ stealth });
+ 
+-            const { addNotificationMock, applySettingsJsonMock } = await setupAndRender();
++                const { addNotificationMock, applySettingsJsonMock } = await setupAndRender();
+ 
+-            await triggerImport(invalidContent);
++                await triggerImport(invalidContent);
+ 
+-            await waitFor(() => {
+-                expect(addNotificationMock).toHaveBeenCalledWith(
+-                    expect.objectContaining({
+-                        type: 'error',
+-                        text: 'options_popup_import_error_title',
+-                    }),
+-                );
+-            });
++                await waitFor(() => {
++                    expect(addNotificationMock).toHaveBeenCalledWith(
++                        expect.objectContaining({
++                            type: 'error',
++                            text: 'options_popup_import_error_title',
++                        }),
++                    );
++                });
+ 
+-            expect(applySettingsJsonMock).not.toHaveBeenCalled();
+-        });
++                expect(applySettingsJsonMock).not.toHaveBeenCalled();
++            },
++        );
+     });
+ });

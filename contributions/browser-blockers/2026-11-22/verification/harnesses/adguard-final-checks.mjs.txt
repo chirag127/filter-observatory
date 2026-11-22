@@ -1,0 +1,68 @@
+/* {"kind":"verifier_source_reference_projection","source":{"task_relative_path":"adguard-final-checks.mjs","sha256":"c173a4894febdd19523ebe6dd0eb60449e065209acfa768cb7ae9428ca5bf521","bytes":3060},"host_path_redaction":true,"execution_identity_redaction":true,"private_endpoint_redaction":true,"not_reexecuted":true,"executable_as_packaged":false,"note":"Text reference only. Restore original task-relative layout and replace symbolic roots before any separately authorized reproduction."} */
+import { spawn, execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = path.dirname(fileURLToPath(import.meta.url));
+const cwd = path.join(root, 'AdguardBrowserExtension');
+const tools = path.join(root, 'adguard-tools');
+const pnpm = path.join(tools, 'pnpm/package/bin/pnpm.cjs');
+const paths = [
+    'Extension/src/pages/options/components/General/General.tsx',
+    'tests/src/pages/options/components/General/General.test.tsx',
+    'package.json',
+    'pnpm-lock.yaml',
+];
+const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+const inputs = Object.fromEntries(paths.map(p => [p, sha256(readFileSync(path.join(cwd, p)))]));
+const env = {
+    ...process.env,
+    PATH: `${path.join(tools, 'node')}${path.delimiter}${process.env.PATH}`,
+    CI: 'true',
+    HUSKY: '0',
+    NODE_COMPILE_CACHE: path.join(tools, 'compile-cache'),
+};
+
+function check(script) {
+    return new Promise(resolve => {
+        const startedAt = new Date().toISOString();
+        const child = spawn(process.execPath, [pnpm, script], { cwd, env, windowsHide: true });
+        let output = '';
+        child.stdout.on('data', chunk => { output += chunk; });
+        child.stderr.on('data', chunk => { output += chunk; });
+        child.on('error', error => { output += `\nSpawn error: ${error.message}\n`; });
+        child.on('close', (exitCode, signal) => {
+            const logPath = path.join(root, `adguard-required-${script}.log`);
+            writeFileSync(logPath, output);
+            resolve({
+                command: `../adguard-tools/node/node.exe ../adguard-tools/pnpm/package/bin/pnpm.cjs ${script}`,
+                cwd,
+                started_at: startedAt,
+                finished_at: new Date().toISOString(),
+                pid: child.pid,
+                exit_code: exitCode,
+                signal,
+                log_path: logPath,
+                log_sha256: sha256(Buffer.from(output)),
+                output_tail: output.split(/\r?\n/).slice(-18).join('\n'),
+            });
+        });
+    });
+}
+
+const results = await Promise.allSettled([check('lint'), check('test')]);
+const receipt = {
+    observed_at: new Date().toISOString(),
+    base: execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim(),
+    node: process.version,
+    pnpm: '10.33.4',
+    input_sha256: inputs,
+    runner_sha256: sha256(readFileSync(fileURLToPath(import.meta.url))),
+    results,
+    limitations: 'The frozen install failed at the internal rulesets tarball. No substitute package or synthetic dependency links were added. These commands record the actual required-check outcome in that partial installation.',
+};
+writeFileSync(path.join(root, 'adguard-required-checks.json'), `${JSON.stringify(receipt, null, 2)}\n`);
+console.log(JSON.stringify(receipt, null, 2));
+process.exitCode = results.every(r => r.status === 'fulfilled' && r.value.exit_code === 0) ? 0 : 1;

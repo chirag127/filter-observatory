@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "kind": "public_submission_receipt_projection",
+  "source_receipts_unchanged": true,
+  "new_remote_operations": 0,
+  "new_requests": [
+    {
+      "id": "adguard-import-recovery",
+      "repository": "AdguardTeam/AdguardBrowserExtension",
+      "kind": "issue",
+      "number": 3670,
+      "url": "https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3670",
+      "title": "Extend settings-import recovery to JSON imports and interrupted operations",
+      "body_sha256": "e410cae5dc0eb277872f838dd157d55edcd43908b8d0d75adf056415b0ffeb27",
+      "created_at": "2026-11-22T15:06:45Z",
+      "readback_at": "2026-11-22T15:06:46.230760+00:00",
+      "exact_body_match": true,
+      "state": "submitted_and_readback_verified",
+      "maintainer_acceptance": "unknown",
+      "implementation": "not_established_by_submission",
+      "category": null,
+      "labels_at_readback": [],
+      "source_receipt": {
+        "path": "adguard-import-recovery-submission.json",
+        "sha256": "6ebfa576661adf9a696dccff3b145852d9455847def91097b468cf7a6182785b"
+      },
+      "review_record": "adguard-request-review-final.json",
+      "correction_record": null
+    },
+    {
+      "id": "adguard-preset-impact-preview",
+      "repository": "AdguardTeam/AdguardBrowserExtension",
+      "kind": "issue",
+      "number": 3671,
+      "url": "https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3671",
+      "title": "Preview the replacement impact of shared settings presets",
+      "body_sha256": "f0948295d0e77b6fb82314089f0fdfb74e33d2876cd8d427e81d81a8505cbfbd",
+      "created_at": "2026-11-22T15:08:18Z",
+      "readback_at": "2026-11-22T15:08:18.724664+00:00",
+      "exact_body_match": true,
+      "state": "submitted_and_readback_verified",
+      "maintainer_acceptance": "unknown",
+      "implementation": "not_established_by_submission",
+      "category": null,
+      "labels_at_readback": [],
+      "source_receipt": {
+        "path": "adguard-preset-impact-preview-submission.json",
+        "sha256": "630ea443739d8480a8e92104c36e72ca28df7331d46c4f431fee3ac58c24f2d6"
+      },
+      "review_record": "adguard-request-review.json",
+      "correction_record": null
+    },
+    {
+      "id": "ubol-share-safe-diagnostics",
+      "repository": "uBlockOrigin/uBOL-home",
+      "kind": "discussion",
+      "number": 805,
+      "url": "https://github.com/uBlockOrigin/uBOL-home/discussions/805",
+      "title": "Share-safe troubleshooting output for imported subscription URLs",
+      "body_sha256": "aed34d238aa5e8e2493d58f12851c5585db55be629c3dbe9a1322d5de507d68b",
+      "created_at": "2026-11-22T15:44:33Z",
+      "readback_at": "2026-11-22T15:44:35.278830+00:00",
+      "exact_body_match": true,
+      "state": "submitted_and_readback_verified",
+      "maintainer_acceptance": "unknown",
+      "implementation": "not_established_by_submission",
+      "category": {
+        "id": "DIC_kwDOIF-vyc4CRs4q",
+        "name": "Ideas"
+      },
+      "labels_at_readback": null,
+      "source_receipt": {
+        "path": "ubol-share-safe-diagnostics-submission.json",
+        "sha256": "2351f11fdbeddb0711f6a13faf9192b3d6ff05f503adb40bb5edab0a73312249"
+      },
+      "review_record": "ubol-request-review.json",
+      "correction_record": "ubol-request-correction.json"
+    },
+    {
+      "id": "ubol-keyboard-controls",
+      "repository": "uBlockOrigin/uBOL-home",
+      "kind": "discussion",
+      "number": 806,
+      "url": "https://github.com/uBlockOrigin/uBOL-home/discussions/806",
+      "title": "Keyboard-operable dashboard list-management actions",
+      "body_sha256": "8baa5bf3d749d7820a4368cdf70ebae2b3691e5cfb2f5918936768722a6edda5",
+      "created_at": "2026-11-22T15:46:13Z",
+      "readback_at": "2026-11-22T15:46:15.127771+00:00",
+      "exact_body_match": true,
+      "state": "submitted_and_readback_verified",
+      "maintainer_acceptance": "unknown",
+      "implementation": "not_established_by_submission",
+      "category": {
+        "id": "DIC_kwDOIF-vyc4CRs4q",
+        "name": "Ideas"
+      },
+      "labels_at_readback": null,
+      "source_receipt": {
+        "path": "ubol-keyboard-controls-submission.json",
+        "sha256": "83ea8c35f12173767048278d1879de906091457d40c7585443f44ee2d77cc490"
+      },
+      "review_record": "ubol-request-review.json",
+      "correction_record": null
+    }
+  ],
+  "existing_cloud_comments": [
+    {
+      "repository": "AdguardTeam/AdguardBrowserExtension",
+      "issue_number": 3131,
+      "issue_title": "Cloud Sync",
+      "issue_url": "https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3131",
+      "issue_state_at_readback": "open",
+      "issue_locked_at_readback": false,
+      "comment_id": 7080139220,
+      "comment_url": "https://github.com/AdguardTeam/AdguardBrowserExtension/issues/3131#issuecomment-7080139220",
+      "comment_author": "chirag127",
+      "comment_created_at": "2026-11-22T13:53:41Z",
+      "status": "existing-comment-verified",
+      "scope": "Optional portable settings sync, offline continuity, validated incoming configuration, explicit conflicts, last-success/error state and recovery.",
+      "publication_performed_by_this_continuation": false
+    },
+    {
+      "repository": "uBlockOrigin/uBOL-home",
+      "issue_number": 273,
+      "issue_title": "[Request] Ability to sync trusted sites between devices",
+      "issue_url": "https://github.com/uBlockOrigin/uBOL-home/issues/273",
+      "issue_state_at_readback": "open",
+      "issue_locked_at_readback": false,
+      "comment_id": 7080151378,
+      "comment_url": "https://github.com/uBlockOrigin/uBOL-home/issues/273#issuecomment-7080151378",
+      "comment_author": "chirag127",
+      "comment_created_at": "2026-11-22T13:54:41Z",
+      "status": "existing-comment-verified",
+      "scope": "Optional browser-native preference/site-mode transfer, preview and merge, offline filtering, quotas, device-local permissions and recovery.",
+      "publication_performed_by_this_continuation": false
+    }
+  ],
+  "existing_cloud_readback_at": "2026-11-22T14:13:06Z",
+  "existing_cloud_receipt_sha256": "fea263cd6bd7b5e70e97df2288c2b27652e942121b56b369f651b01ae6cfb220",
+  "existing_related_threads": [
+    {
+      "url": "https://github.com/uBlockOrigin/uBOL-home/discussions/748",
+      "scope": "Imported-list manual refresh and update visibility",
+      "disposition": "reuse_existing_request"
+    },
+    {
+      "url": "https://github.com/uBlockOrigin/uBOL-home/issues/654",
+      "scope": "Popup filtering-mode accessibility",
+      "disposition": "reuse_existing_request"
+    },
+    {
+      "url": "https://github.com/AdguardTeam/AdguardBrowserExtension/issues/208",
+      "scope": "Unsupported imported-rule feedback",
+      "disposition": "reuse_existing_request"
+    }
+  ],
+  "limitations": [
+    "Submission and exact-body readback do not establish maintainer acceptance, implementation or release.",
+    "Novelty review used bounded dated searches; no exhaustive absence claim.",
+    "Full bodies and local command, identity and authentication details are omitted. Body hashes bind the public remote content.",
+    "Cloud comments predated the retained readback; this assembly performs no publication."
+  ]
+}

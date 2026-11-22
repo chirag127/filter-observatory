@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "adguard-dependencies-attempt-2.json",
+    "sha256": "a063613b70bd81751c103b8d8edfd1e0f3c77f3c3d8dcc497771d444e49ca199",
+    "bytes": 1051
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": []
+  },
+  "evidence": {
+    "started_at": "2026-11-22T14:36:34.6558400Z",
+    "cwd": "${ADGUARD_ROOT}",
+    "head": "6beedf03743d53691162a11541360071cce5e55a",
+    "node": "v22.23.5",
+    "pnpm": "10.33.4",
+    "lock_sha256_before": "88864bf950011b898aaf9aab49c44382d1248e4b1ec003db647371714b83ad2d",
+    "command": "node ../adguard-tools/pnpm/package/bin/pnpm.cjs install --frozen-lockfile --ignore-scripts --store-dir ../adguard-tools/store --config.cache-dir=../adguard-tools/cache --config.state-dir=../adguard-tools/state --fetch-retries=0 --fetch-timeout=20000 --network-concurrency=4 --reporter=append-only",
+    "log": "${TASK_ROOT}/adguard-dependencies-attempt-2.log",
+    "outcome": "blocked",
+    "exit_code": 1,
+    "finished_at": "2026-11-22T14:41:59.4221119Z",
+    "lock_sha256_after": "88864bf950011b898aaf9aab49c44382d1248e4b1ec003db647371714b83ad2d"
+  }
+}

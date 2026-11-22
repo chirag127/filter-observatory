@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "ubol-red-receipt.json",
+    "sha256": "d713ad43f387317c2de71157728ee459b47d75474868db3ca2584a3f0aa02982",
+    "bytes": 1137
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": [
+      "Historical test hash precedes the final explicit node:process import. Retain its recorded input binding; final green and focused lint receipts bind the final test bytes."
+    ]
+  },
+  "evidence": {
+    "phase": "red",
+    "command": [
+      "${NODE_HOME}/node.exe",
+      "--experimental-vm-modules",
+      "--test",
+      "--test-reporter=tap",
+      "platform/mv3/tests/settings-recovery.test.mjs"
+    ],
+    "cwd": "${UBLOCK_ROOT}/",
+    "started_at": "2026-11-22T14:28:32.175Z",
+    "finished_at": "2026-11-22T14:28:36.831Z",
+    "node": "v26.13.0",
+    "source_sha256": {
+      "platform/mv3/extension/js/settings.js": "6c368befdf7c623859126f5c4be90c814604cbfa16580899b22e933ef37574b5",
+      "platform/mv3/tests/settings-recovery.test.mjs": "ddc782ce6174b7a71086414bab84b9ffa81376de49b769dad1030b5e88488a6e"
+    },
+    "base": "5934db2a0437a50182c4a8f3da2e0941cf806253",
+    "package_base": null,
+    "exit_code": 1,
+    "signal": null,
+    "error": null,
+    "output_path": "${TASK_ROOT}/ubol-red.tap",
+    "scope": "Real settings module, HTML, DOM utility and restore module; simulated browser runtime/storage and injected file/module/storage failures. No live extension or browser access."
+  }
+}

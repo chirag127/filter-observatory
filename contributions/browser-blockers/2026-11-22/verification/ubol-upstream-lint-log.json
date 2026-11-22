@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_log_projection",
+  "source": {
+    "task_relative_path": "ubol-upstream-lint-supplement.log",
+    "sha256": "f46466b3374b441c6550e4bdcab9dfd2f7fd05bb7a15015d96fa2e93ed63b8a9",
+    "bytes": 5605
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_path_redaction": true,
+    "execution_identity_redaction": true,
+    "private_endpoint_redaction": true,
+    "not_reexecuted": true,
+    "hash_semantics": "source.sha256 identifies the original raw log; this projection has its own public-file hash in the inventory.",
+    "selection": "Complete log with only host-path and execution-identity projection.",
+    "selected_source_lines": null
+  },
+  "evidence": {
+    "format": "eslint-output",
+    "summary": {
+      "exit_code": 1,
+      "errors": 73,
+      "warnings": 0,
+      "rule": "no-undef",
+      "affected_bindings": [
+        "chrome",
+        "browser"
+      ],
+      "attribution": "Unchanged tracked files at the recorded base; focused changed-file lint passed."
+    },
+    "content": "\n> uBlock@1.0.0 lint\n> eslint --no-warn-ignored --ignore-pattern \"**/lib/\" --ignore-pattern \"**/npm/\" -- \"./src/js/*.js\" \"./src/js/**/*.js\" \"./**/*.json\" \"./platform/**/*.js\"\n\n\n${UBLOCK_ROOT}/platform/chromium/webext.js\n   31:26  error  'chrome' is not defined  no-undef\n   48:39  error  'chrome' is not defined  no-undef\n   65:32  error  'chrome' is not defined  no-undef\n   66:35  error  'chrome' is not defined  no-undef\n   67:33  error  'chrome' is not defined  no-undef\n   68:30  error  'chrome' is not defined  no-undef\n   69:33  error  'chrome' is not defined  no-undef\n   70:18  error  'chrome' is not defined  no-undef\n   74:50  error  'chrome' is not defined  no-undef\n   75:39  error  'chrome' is not defined  no-undef\n   76:34  error  'chrome' is not defined  no-undef\n   77:35  error  'chrome' is not defined  no-undef\n   82:20  error  'chrome' is not defined  no-undef\n   83:22  error  'chrome' is not defined  no-undef\n   86:20  error  'chrome' is not defined  no-undef\n   87:33  error  'chrome' is not defined  no-undef\n   88:36  error  'chrome' is not defined  no-undef\n   97:30  error  'chrome' is not defined  no-undef\n   98:28  error  'chrome' is not defined  no-undef\n   99:38  error  'chrome' is not defined  no-undef\n  100:31  error  'chrome' is not defined  no-undef\n  101:28  error  'chrome' is not defined  no-undef\n  106:30  error  'chrome' is not defined  no-undef\n  107:40  error  'chrome' is not defined  no-undef\n  108:36  error  'chrome' is not defined  no-undef\n  109:36  error  'chrome' is not defined  no-undef\n  110:32  error  'chrome' is not defined  no-undef\n  111:33  error  'chrome' is not defined  no-undef\n  112:33  error  'chrome' is not defined  no-undef\n  113:38  error  'chrome' is not defined  no-undef\n  114:33  error  'chrome' is not defined  no-undef\n  118:29  error  'chrome' is not defined  no-undef\n  119:33  error  'chrome' is not defined  no-undef\n  123:30  error  'chrome' is not defined  no-undef\n  124:33  error  'chrome' is not defined  no-undef\n  125:33  error  'chrome' is not defined  no-undef\n  144:25  error  'chrome' is not defined  no-undef\n  152:6   error  'chrome' is not defined  no-undef\n  154:24  error  'chrome' is not defined  no-undef\n  159:6   error  'chrome' is not defined  no-undef\n  161:22  error  'chrome' is not defined  no-undef\n  162:31  error  'chrome' is not defined  no-undef\n  163:20  error  'chrome' is not defined  no-undef\n  164:40  error  'chrome' is not defined  no-undef\n  165:42  error  'chrome' is not defined  no-undef\n  167:26  error  'chrome' is not defined  no-undef\n  168:24  error  'chrome' is not defined  no-undef\n  169:34  error  'chrome' is not defined  no-undef\n  170:27  error  'chrome' is not defined  no-undef\n  171:24  error  'chrome' is not defined  no-undef\n  176:6   error  'chrome' is not defined  no-undef\n  177:45  error  'chrome' is not defined  no-undef\n\n${UBLOCK_ROOT}/platform/common/vapi-client.js\n   97:14  error  'browser' is not defined  no-undef\n  167:25  error  'browser' is not defined  no-undef\n\n${UBLOCK_ROOT}/platform/firefox/webext.js\n  22:16  error  'browser' is not defined  no-undef\n\n${UBLOCK_ROOT}/platform/mv3/extension/js/ext-offscreen.js\n  24:42  error  'chrome' is not defined  no-undef\n  27:12  error  'chrome' is not defined  no-undef\n  35:12  error  'chrome' is not defined  no-undef\n\n${UBLOCK_ROOT}/platform/mv3/extension/js/scripting/css-user-terminate.js\n  28:5  error  'chrome' is not defined  no-undef\n\n${UBLOCK_ROOT}/platform/mv3/extension/js/scripting/css-user.js\n  27:23  error  'chrome' is not defined  no-undef\n  38:34  error  'chrome' is not defined  no-undef\n\n${UBLOCK_ROOT}/platform/mv3/extension/js/scripting/toolbar-icon.js\n  23:5  error  'chrome' is not defined  no-undef\n\n${UBLOCK_ROOT}/platform/mv3/firefox/ext-offscreen.js\n  35:28  error  'browser' is not defined  no-undef\n\n${UBLOCK_ROOT}/platform/mv3/safari/css-api.js\n  29:13  error  'chrome' is not defined  no-undef\n  39:9   error  'chrome' is not defined  no-undef\n\n${UBLOCK_ROOT}/platform/mv3/safari/css-user.js\n  31:27  error  'chrome' is not defined  no-undef\n  41:42  error  'chrome' is not defined  no-undef\n\n${UBLOCK_ROOT}/src/js/broadcast.js\n  81:5  error  'browser' is not defined  no-undef\n\n${UBLOCK_ROOT}/src/js/scriptlets/cosmetic-logger.js\n  320:1  error  'browser' is not defined  no-undef\n  325:5  error  'browser' is not defined  no-undef\n\n${UBLOCK_ROOT}/src/js/scriptlets/dom-inspector.js\n  789:9  error  'browser' is not defined  no-undef\n  813:9  error  'browser' is not defined  no-undef\n  817:9  error  'browser' is not defined  no-undef\n\n✖ 73 problems (73 errors, 0 warnings)\n\n"
+  }
+}

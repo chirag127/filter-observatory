@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "ubol-implementation.json",
+    "sha256": "d56ab4c33d20846e69484954472011c255f986af7a6af79c0e504f2b7fea76f5",
+    "bytes": 11906
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [
+      "running_jobs",
+      "handoff",
+      "final_verification_intent",
+      "prior_patch_export",
+      "self_review",
+      "review_attempts",
+      "green_result",
+      "package_dom_result",
+      "next_operation",
+      "patch_export_intent",
+      "owner_scope",
+      "authorization",
+      "guidance_read",
+      "skill_sources",
+      "planned_checks",
+      "final_patch_export.shell_id",
+      "independent_review.session_id"
+    ],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": [
+      "Historical implementation handoff. The later verification supplement supersedes the old missing-lint and native-browser coverage gaps only to its stated scope."
+    ]
+  },
+  "evidence": {
+    "status": "handoff_ready_with_explicit_verification_gaps",
+    "last_verified_at": "2026-11-22T14:51:44.122Z",
+    "final_patch_export": {
+      "status": "verified",
+      "path": "ubol-settings-recovery.patch",
+      "receipt": "ubol-patch-receipt.json",
+      "completed_at": "2026-11-22T14:51:44.122Z",
+      "exit_code": 0,
+      "sha256": "78640595d49f8f85bfe7e6a12d309aa253585048463a1cdbbe4b5370e9ad5996",
+      "bytes": 17898,
+      "reverse_apply_check_exit_code": 0,
+      "head": "5934db2a0437a50182c4a8f3da2e0941cf806253",
+      "dirty_state": " M platform/mv3/extension/js/settings.js\n?? platform/mv3/tests/",
+      "coverage": "Patch includes the one production file and its regression test. Current hashes match both final DOM receipts and the unchanged production syntax/whitespace receipt. git apply --check --reverse was read-only; no patch was applied to another checkout."
+    },
+    "final_input_sha256": {
+      "platform/mv3/extension/js/settings.js": "a69076d6ea75665912ec49ea9a3836bd3d795cc584bd2c765b93ea833ee6afb3",
+      "platform/mv3/tests/settings-recovery.test.mjs": "a27254320ec8ba5ab496dfb1aeeb43ef778e395942db3c6601ef0d18c55016f5"
+    },
+    "final_green_result": {
+      "receipt": "ubol-green-final-receipt.json",
+      "output": "ubol-green-final.tap",
+      "completed_at": "2026-11-22T14:50:28.722Z",
+      "exit_code": 0,
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "scope": "Actual settings and restore modules in a host jsdom fixture; final test bytes include the explicit process import requested by the reviewer."
+    },
+    "final_package_dom_result": {
+      "receipt": "ubol-package-dom-final-receipt.json",
+      "output": "ubol-package-dom-final.tap",
+      "completed_at": "2026-11-22T14:50:28.727Z",
+      "exit_code": 0,
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "scope": "Changed settings.js overlaid in memory on read-only pinned uBOL-home/chromium HTML and modules in jsdom. No installed browser, full package build, or real WebExtension storage was exercised."
+    },
+    "independent_review": {
+      "status": "completed_with_one_test_only_finding",
+      "production_findings": [],
+      "finding": "The test used process.env without importing the Node process binding; the ESLint configuration supplies browser globals only.",
+      "resolution": "Added import process from node:process in the regression test; production source unchanged.",
+      "review_limits": "Static review, receipt inspection and source tracing; no full ESLint or real-browser validation. The source-DOM and package-overlay receipts were reused by the reviewer."
+    },
+    "static_result": {
+      "receipt": "ubol-static-receipt.json",
+      "completed_at": "2026-11-22T14:43:00.582Z",
+      "settings_syntax_exit_code": 0,
+      "regression_syntax_exit_code": 0,
+      "diff_whitespace_exit_code": 0,
+      "upstream_lint_exit_code": 1,
+      "lint_status": "blocked_missing_dependency",
+      "lint_error": "eslint is not recognized as an internal or external command",
+      "lint_log": "ubol-upstream-lint.log",
+      "interpretation": "Syntax and whitespace passed; npm run lint could not run ESLint. No lint pass is claimed, and no dependency installation was attempted in this lane."
+    },
+    "red_result": {
+      "receipt": "ubol-red-receipt.json",
+      "output": "ubol-red.tap",
+      "completed_at": "2026-11-22T14:28:36.831Z",
+      "exit_code": 1,
+      "tests": 13,
+      "passed": 6,
+      "failed": 7,
+      "interpretation": "Behavioral red: error/abort/synchronous read exceptions leave busy set; module and storage failures in restore/reset cause unhandled rejections. Valid restore/reset and both cancellation forms passed."
+    },
+    "implementation_choice": "Await file selection, then a FileReader loadend promise which covers success/error/abort and captures synchronous read exceptions; await dynamic import and restore in a single try/catch/finally. Reset similarly always clears busy. Reuse settings.js console.error convention; no new notification framework or transaction claim.",
+    "task": "Bounded uBO Lite restore/reset recovery fix",
+    "repo": "${UBLOCK_ROOT}",
+    "base": "5934db2a0437a50182c4a8f3da2e0941cf806253",
+    "head_at_start": "5934db2a0437a50182c4a8f3da2e0941cf806253",
+    "branch": "research/settings-enhancements",
+    "origin": "https://github.com/gorhill/uBlock.git",
+    "initial_dirty_state": "clean, confirmed 2026-11-22T14:13:56.772Z and subsequent completed git status --short notification",
+    "tool_versions": {
+      "node": "v26.13.0",
+      "jsdom": "31.0.1"
+    },
+    "root_cause": "Pinned settings.js creates an outer promise settled only by load/cancel paths. FileReader errors/abort and rejected dynamic imports do not settle it; restore/reset rejection skips removal of busy. dashboard.css hides normal sections while busy is present.",
+    "reachability": "Restore and reset buttons in dashboard.html call the actual settings.js handlers. backup-restore.js performs direct localWrite/localRemove calls which may reject; ext.js sendMessage already swallows some other background rejections, so this fix cannot make all background failures observable.",
+    "verification_limits": [
+      "No installed extension/browser operations",
+      "No transactional restore claim",
+      "npm test is an explicit failing placeholder, not a test suite",
+      "Full packaging requires Linux-oriented tooling, checked-out build dependencies and rule generation; not yet run",
+      "jsdom validates DOM behavior but does not render browser layout or validate real WebExtension APIs",
+      "Current official MDN FileReader, Node VM and jsdom documentation were read after the parent recorded Context7 quota exhaustion"
+    ]
+  }
+}

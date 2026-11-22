@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "ubol-static-receipt.json",
+    "sha256": "8fa100f57e981719914fb9cf00187d9a93b35ae8c3b7d8e5362e05003ed45e3a",
+    "bytes": 2606
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": [
+      "Historical test hash precedes the final explicit node:process import. Retain its recorded input binding; final green and focused lint receipts bind the final test bytes."
+    ]
+  },
+  "evidence": {
+    "observed_at": "2026-11-22T14:43:00.582Z",
+    "cwd": "${UBLOCK_ROOT}/",
+    "node": "v26.13.0",
+    "base": "5934db2a0437a50182c4a8f3da2e0941cf806253",
+    "input_sha256": {
+      "platform/mv3/extension/js/settings.js": "a69076d6ea75665912ec49ea9a3836bd3d795cc584bd2c765b93ea833ee6afb3",
+      "platform/mv3/tests/settings-recovery.test.mjs": "ddc782ce6174b7a71086414bab84b9ffa81376de49b769dad1030b5e88488a6e"
+    },
+    "checks": [
+      {
+        "id": "settings-syntax",
+        "executable": "${NODE_HOME}/node.exe",
+        "args": [
+          "--check",
+          "platform/mv3/extension/js/settings.js"
+        ],
+        "started_at": "2026-11-22T14:42:58.511Z",
+        "finished_at": "2026-11-22T14:42:58.592Z",
+        "exit_code": 0,
+        "signal": null,
+        "error": null,
+        "output_path": "${TASK_ROOT}/ubol-settings-syntax.log"
+      },
+      {
+        "id": "regression-syntax",
+        "executable": "${NODE_HOME}/node.exe",
+        "args": [
+          "--check",
+          "platform/mv3/tests/settings-recovery.test.mjs"
+        ],
+        "started_at": "2026-11-22T14:42:58.593Z",
+        "finished_at": "2026-11-22T14:42:58.674Z",
+        "exit_code": 0,
+        "signal": null,
+        "error": null,
+        "output_path": "${TASK_ROOT}/ubol-regression-syntax.log"
+      },
+      {
+        "id": "diff-whitespace",
+        "executable": "git",
+        "args": [
+          "diff",
+          "--check",
+          "--",
+          "platform/mv3/extension/js/settings.js"
+        ],
+        "started_at": "2026-11-22T14:42:58.676Z",
+        "finished_at": "2026-11-22T14:42:58.769Z",
+        "exit_code": 0,
+        "signal": null,
+        "error": null,
+        "output_path": "${TASK_ROOT}/ubol-diff-whitespace.log"
+      },
+      {
+        "id": "upstream-lint",
+        "executable": "cmd.exe",
+        "args": [
+          "/d",
+          "/s",
+          "/c",
+          "npm run lint"
+        ],
+        "started_at": "2026-11-22T14:42:58.770Z",
+        "finished_at": "2026-11-22T14:43:00.580Z",
+        "exit_code": 1,
+        "signal": null,
+        "error": null,
+        "output_path": "${TASK_ROOT}/ubol-upstream-lint.log"
+      }
+    ],
+    "scope": "Syntax, changed-file whitespace, and the actual upstream lint command. No dependency installation or Git mutation."
+  }
+}

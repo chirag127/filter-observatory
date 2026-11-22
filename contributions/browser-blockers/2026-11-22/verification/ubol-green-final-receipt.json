@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "ubol-green-final-receipt.json",
+    "sha256": "51cef7ed185d0de3bd96e76d35ea52a5c3bba109d9e808ebf687176d2b6de058",
+    "bytes": 1153
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": []
+  },
+  "evidence": {
+    "phase": "green-final",
+    "command": [
+      "${NODE_HOME}/node.exe",
+      "--experimental-vm-modules",
+      "--test",
+      "--test-reporter=tap",
+      "platform/mv3/tests/settings-recovery.test.mjs"
+    ],
+    "cwd": "${UBLOCK_ROOT}/",
+    "started_at": "2026-11-22T14:50:25.008Z",
+    "finished_at": "2026-11-22T14:50:28.722Z",
+    "node": "v26.13.0",
+    "source_sha256": {
+      "platform/mv3/extension/js/settings.js": "a69076d6ea75665912ec49ea9a3836bd3d795cc584bd2c765b93ea833ee6afb3",
+      "platform/mv3/tests/settings-recovery.test.mjs": "a27254320ec8ba5ab496dfb1aeeb43ef778e395942db3c6601ef0d18c55016f5"
+    },
+    "base": "5934db2a0437a50182c4a8f3da2e0941cf806253",
+    "package_base": null,
+    "exit_code": 0,
+    "signal": null,
+    "error": null,
+    "output_path": "${TASK_ROOT}/ubol-green-final.tap",
+    "scope": "Real settings module, HTML, DOM utility and restore module; simulated browser runtime/storage and injected file/module/storage failures. No live extension or browser access."
+  }
+}

@@ -1,0 +1,420 @@
+diff --git a/platform/mv3/extension/js/settings.js b/platform/mv3/extension/js/settings.js
+index a92e7d0..e502d15 100644
+--- a/platform/mv3/extension/js/settings.js
++++ b/platform/mv3/extension/js/settings.js
+@@ -146,49 +146,63 @@ async function backupSettings() {
+ }
+ 
+ async function restoreSettings() {
+-    const promise = new Promise(resolve => {
+-        const input = qs$('section[data-pane="settings"] input[type="file"]');
+-        input.onchange = ev => {
+-            dom.cl.add(dom.body, 'busy');
+-            input.onchange = null;
+-            const file = ev.target.files[0];
+-            if ( file === undefined || file.name === '' ) { return resolve(); }
++    const input = qs$('section[data-pane="settings"] input[type="file"]');
++    try {
++        const file = await new Promise(resolve => {
++            input.onchange = ev => { resolve(ev.target.files[0]); };
++            input.oncancel = ( ) => { resolve(); };
++            // Reset to empty string, this will ensure a change event is properly
++            // triggered if the user pick a file, even if it's the same as the last
++            // one picked.
++            input.value = '';
++            input.click();
++        });
++        input.onchange = null;
++        input.oncancel = null;
++        if ( file === undefined || file.name === '' ) { return; }
++        dom.cl.add(dom.body, 'busy');
++        const text = await new Promise((resolve, reject) => {
+             const fr = new FileReader();
+-            fr.onload = ( ) => {
+-                fr.onload = null;
+-                if ( typeof fr.result !== 'string' ) { return resolve(); }
+-                let data;
+-                try {
+-                    data = JSON.parse(fr.result);
+-                } catch {
++            fr.onloadend = ( ) => {
++                fr.onloadend = null;
++                if ( fr.error !== null ) {
++                    reject(fr.error);
++                } else {
++                    resolve(fr.result);
+                 }
+-                if ( data instanceof Object === false ) { return resolve(); }
+-                import('./backup-restore.js').then(api => {
+-                    resolve(api.restoreFromObject(data));
+-                });
+             };
+             fr.readAsText(file);
+-        };
+-        input.oncancel = ( ) => {
+-            resolve();
+-        };
+-        // Reset to empty string, this will ensure a change event is properly
+-        // triggered if the user pick a file, even if it's the same as the last
+-        // one picked.
+-        input.value = '';
+-        input.click();
+-    });
+-    await promise;
+-    dom.cl.remove(dom.body, 'busy');
++        });
++        if ( typeof text !== 'string' ) { return; }
++        let data;
++        try {
++            data = JSON.parse(text);
++        } catch {
++        }
++        if ( data instanceof Object === false ) { return; }
++        const api = await import('./backup-restore.js');
++        await api.restoreFromObject(data);
++    } catch(reason) {
++        console.error(reason);
++    } finally {
++        input.onchange = null;
++        input.oncancel = null;
++        dom.cl.remove(dom.body, 'busy');
++    }
+ }
+ 
+ async function resetSettings() {
+     const response = self.confirm(i18n.getMessage('resetToDefaultConfirm'));
+     if ( response !== true ) { return; }
+     dom.cl.add(dom.body, 'busy');
+-    const api = await import('./backup-restore.js');
+-    await api.restoreFromObject({});
+-    dom.cl.remove(dom.body, 'busy');
++    try {
++        const api = await import('./backup-restore.js');
++        await api.restoreFromObject({});
++    } catch(reason) {
++        console.error(reason);
++    } finally {
++        dom.cl.remove(dom.body, 'busy');
++    }
+ }
+ 
+ /******************************************************************************/
+diff --git a/platform/mv3/tests/settings-recovery.test.mjs b/platform/mv3/tests/settings-recovery.test.mjs
+new file mode 100644
+index 0000000..3e79fda
+--- /dev/null
++++ b/platform/mv3/tests/settings-recovery.test.mjs
+@@ -0,0 +1,313 @@
++import assert from 'node:assert/strict';
++import { createRequire } from 'node:module';
++import process from 'node:process';
++import { readFileSync } from 'node:fs';
++import { setImmediate } from 'node:timers/promises';
++import test from 'node:test';
++import vm from 'node:vm';
++
++const { JSDOM } = createRequire(import.meta.url)('jsdom');
++const extensionRoot = new URL('../extension/', import.meta.url);
++const repoRoot = new URL('../../../', import.meta.url);
++const sharedModules = new Set([ 'dom.js', 'fa-icons.js', 'i18n.js' ]);
++const packageRoot = process.env.UBOL_TEST_PACKAGE;
++
++function source(path) {
++    // settings.js is the changed source overlaid at its normal package location.
++    if ( packageRoot && path !== 'js/settings.js' ) {
++        return readFileSync(`${packageRoot}/${path}`, 'utf8');
++    }
++    const name = path.slice(3);
++    const url = path.startsWith('js/') && sharedModules.has(name)
++        ? new URL(`src/js/${name}`, repoRoot)
++        : new URL(path, extensionRoot);
++    return readFileSync(url, 'utf8');
++}
++
++async function dashboard(t) {
++    const page = new JSDOM(source('dashboard.html'), {
++        runScripts: 'outside-only',
++        url: 'https://ubol.invalid/dashboard.html',
++    });
++    t.after(( ) => { page.window.close(); });
++    const { window } = page;
++    const { document } = window;
++    const diagnostics = [];
++    window.console.error = (...args) => { diagnostics.push(args); };
++    window.IntersectionObserver = class {
++        observe() {}
++        disconnect() {}
++    };
++    window.BroadcastChannel = class {};
++    const style = document.createElement('style');
++    style.textContent = source('css/dashboard.css');
++    document.head.append(style);
++
++    const defaults = {
++        autoReload: true,
++        showBlockedCount: true,
++        developerMode: false,
++        strictBlockMode: true,
++        popupBlockMode: true,
++        rulesets: [ 'easylist' ],
++        filteringModes: {
++            none: [], basic: [], optimal: [ 'all-urls' ], complete: [],
++        },
++    };
++    const state = structuredClone({
++        ...defaults,
++        enabledRulesets: defaults.rulesets,
++        customFilters: [],
++        sandboxFilters: '',
++    });
++    const stored = new Map([
++        [ 'rulesets.imported', [] ],
++        [ 'deferredJobs', [] ],
++        [ 'userDnrRules', 'previous rule' ],
++    ]);
++    const controls = { readerMode: 'native', failImport: false, failStorage: false };
++    let readFinished;
++    window.FileReader = class extends window.FileReader {
++        constructor() {
++            super();
++            this.addEventListener('loadend', ( ) => { readFinished.resolve(); });
++        }
++        readAsText(file) {
++            if ( controls.readerMode === 'native' ) {
++                return super.readAsText(file);
++            }
++            if ( controls.readerMode === 'throw' ) {
++                readFinished.resolve();
++                throw new window.DOMException('Read failed', 'SecurityError');
++            }
++            queueMicrotask(( ) => {
++                const type = controls.readerMode;
++                Object.defineProperty(this, 'readyState', { value: this.DONE });
++                if ( type === 'error' ) {
++                    Object.defineProperty(this, 'error', {
++                        value: new window.DOMException('Read failed', 'NotReadableError'),
++                    });
++                }
++                this.dispatchEvent(new window.ProgressEvent(type));
++                this.dispatchEvent(new window.ProgressEvent('loadend'));
++            });
++        }
++    };
++    const messages = JSON.parse(source('_locales/en/messages.json'));
++    const clone = value => window.JSON.parse(JSON.stringify(value));
++    const storage = {
++        async get(key) {
++            if ( key === null ) { return Object.fromEntries(stored); }
++            return { [key]: stored.get(key) };
++        },
++        async set(values) {
++            if ( controls.failStorage ) { throw new Error('Storage write failed'); }
++            for ( const [ key, value ] of Object.entries(values) ) {
++                stored.set(key, value);
++            }
++        },
++        async remove(keys) {
++            if ( controls.failStorage ) { throw new Error('Storage remove failed'); }
++            for ( const key of Array.isArray(keys) ? keys : [ keys ] ) {
++                stored.delete(key);
++            }
++        },
++    };
++    window.browser = Object.assign(new window.Object(), {
++        i18n: {
++            getMessage: key => messages[key]?.message ?? '',
++            getUILanguage: ( ) => 'en',
++        },
++        runtime: {
++            getURL: path => `chrome-extension://fixture/${path}`,
++            getManifest: ( ) => ({ name: 'uBO Lite test', version: '0.0.0', permissions: [] }),
++            async sendMessage(message) {
++                const { what } = message;
++                if ( what === 'getOptionsPageData' ) {
++                    return clone({
++                        ...state,
++                        defaultFilteringMode: 2,
++                        hasOmnipotence: true,
++                        canShowBlockedCount: true,
++                        disabledFeatures: [],
++                    });
++                }
++                if ( what === 'getDefaultConfig' ) { return clone(defaults); }
++                if ( what === 'getFilteringModeDetails' ) { return clone(state.filteringModes); }
++                if ( what === 'getAllCustomFilters' ) { return clone(state.customFilters); }
++                if ( what === 'getSandboxFilters' ) { return state.sandboxFilters; }
++                const preference = {
++                    setAutoReload: 'autoReload',
++                    setShowBlockedCount: 'showBlockedCount',
++                    setDeveloperMode: 'developerMode',
++                    setStrictBlockMode: 'strictBlockMode',
++                    setPopupBlockMode: 'popupBlockMode',
++                }[what];
++                if ( preference ) { state[preference] = message.state; return; }
++                if ( what === 'applyRulesets' ) { state.enabledRulesets = message.enabledRulesets; return; }
++                if ( what === 'setFilteringModeDetails' ) { state.filteringModes = message.modes; return; }
++                if ( what === 'removeAllCustomFilters' ) { state.customFilters = []; return; }
++                if ( what === 'addManyCustomFilters' ) { state.customFilters.push(...message.entries); return; }
++                if ( what === 'setSandboxFilters' ) { state.sandboxFilters = message.text; return; }
++                if ( what === 'updateUserDnrRules' ) { return; }
++                throw new Error(`Unexpected message: ${what}`);
++            },
++        },
++        storage: { local: storage, session: { async get() { return {}; } } },
++    });
++
++    const context = page.getInternalVMContext();
++    const modules = new Map();
++    const getModule = url => {
++        if ( modules.has(url) ) { return modules.get(url); }
++        const module = new vm.SourceTextModule(source(new URL(url).pathname.slice(1)), {
++            context,
++            identifier: url,
++            async importModuleDynamically(specifier, referring) {
++                if ( specifier === './backup-restore.js' && controls.failImport ) {
++                    throw new Error('Module load failed');
++                }
++                const dependency = getModule(new URL(specifier, referring.identifier).href);
++                if ( dependency.status === 'unlinked' ) { await dependency.link(linker); }
++                await dependency.evaluate();
++                return dependency;
++            },
++        });
++        modules.set(url, module);
++        return module;
++    };
++    const linker = (specifier, referring) => getModule(new URL(specifier, referring.identifier).href);
++    const main = getModule('https://ubol.invalid/js/settings.js');
++    await main.link(linker);
++    await main.evaluate();
++    await setImmediate();
++    assert.equal(diagnostics.length, 0, 'the real settings module must initialize cleanly');
++    const input = document.querySelector('section[data-pane="settings"] input[type="file"]');
++    const click = label => document.querySelector(`button:has([data-i18n="${label}"])`).click();
++    const assertIdle = ( ) => {
++        assert.equal(document.body.classList.contains('busy'), false, 'dashboard must leave busy state');
++        const settings = document.querySelector('section[data-pane="settings"]');
++        assert.notEqual(window.getComputedStyle(settings).display, 'none', 'settings must be visible again');
++    };
++    return {
++        controls, diagnostics, state, stored, assertIdle,
++        async restore(text = '{}', readerMode = 'native') {
++            controls.readerMode = readerMode;
++            readFinished = Promise.withResolvers();
++            const file = new window.File([ text ], 'settings.json', { type: 'application/json' });
++            Object.defineProperty(input, 'files', { configurable: true, value: [ file ] });
++            input.click = ( ) => { input.dispatchEvent(new window.Event('change')); };
++            click('restoreButton');
++            await readFinished.promise;
++            await setImmediate();
++        },
++        async cancel(emptySelection = false) {
++            Object.defineProperty(input, 'files', { configurable: true, value: [] });
++            input.click = ( ) => {
++                input.dispatchEvent(new window.Event(emptySelection ? 'change' : 'cancel'));
++            };
++            click('restoreButton');
++            await setImmediate();
++        },
++        async reset(confirm = true) {
++            window.confirm = ( ) => confirm;
++            click('resetToDefaultButton');
++            await setImmediate();
++        },
++    };
++}
++
++test('valid restore applies settings and leaves the dashboard usable', { timeout: 5000 }, async t => {
++    const app = await dashboard(t);
++    await app.restore(JSON.stringify({
++        autoReload: false,
++        filteringModes: { none: [ 'example.com' ], basic: [], optimal: [ 'all-urls' ], complete: [] },
++        dnrRules: [ '{"id":42}' ],
++    }));
++    app.assertIdle();
++    assert.equal(app.state.autoReload, false);
++    assert.equal(JSON.stringify(app.state.filteringModes.none), '["example.com"]');
++    assert.equal(app.stored.get('userDnrRules'), '{"id":42}');
++    assert.equal(app.diagnostics.length, 0);
++});
++
++for ( const emptySelection of [ false, true ] ) {
++    test(`cancel restore (${emptySelection ? 'empty selection' : 'cancel event'}) preserves settings`, { timeout: 5000 }, async t => {
++        const app = await dashboard(t);
++        await app.cancel(emptySelection);
++        app.assertIdle();
++        assert.equal(app.stored.get('userDnrRules'), 'previous rule');
++        assert.equal(app.diagnostics.length, 0);
++    });
++}
++
++for ( const mode of [ 'error', 'abort', 'throw' ] ) {
++    test(`file read ${mode} leaves the dashboard usable and permits another restore`, { timeout: 5000 }, async t => {
++        const app = await dashboard(t);
++        await app.restore('{}', mode);
++        app.assertIdle();
++        assert.equal(app.stored.get('userDnrRules'), 'previous rule');
++        if ( mode !== 'abort' ) { assert.notEqual(app.diagnostics.length, 0, 'read failure must be reported'); }
++        await app.restore('{"autoReload":false}');
++        app.assertIdle();
++        assert.equal(app.state.autoReload, false);
++    });
++}
++
++test('invalid JSON does not apply settings or retain busy state', { timeout: 5000 }, async t => {
++    const app = await dashboard(t);
++    await app.restore('{not json');
++    app.assertIdle();
++    assert.equal(app.stored.get('userDnrRules'), 'previous rule');
++});
++
++test('restore module rejection is handled and releases busy state', { timeout: 5000 }, async t => {
++    const app = await dashboard(t);
++    app.controls.failImport = true;
++    await app.restore();
++    app.assertIdle();
++    assert.notEqual(app.diagnostics.length, 0, 'module failure must be reported');
++    assert.equal(app.stored.get('userDnrRules'), 'previous rule');
++});
++
++test('restore storage rejection is handled and releases busy state', { timeout: 5000 }, async t => {
++    const app = await dashboard(t);
++    app.controls.failStorage = true;
++    await app.restore('{"dnrRules":["new rule"]}');
++    app.assertIdle();
++    assert.notEqual(app.diagnostics.length, 0, 'storage failure must be reported');
++    assert.equal(app.stored.get('userDnrRules'), 'previous rule');
++});
++
++test('confirmed reset applies defaults and leaves the dashboard usable', { timeout: 5000 }, async t => {
++    const app = await dashboard(t);
++    app.state.autoReload = false;
++    await app.reset();
++    app.assertIdle();
++    assert.equal(app.state.autoReload, true);
++    assert.equal(app.stored.has('userDnrRules'), false);
++    assert.equal(app.diagnostics.length, 0);
++});
++
++test('cancelled reset preserves settings', { timeout: 5000 }, async t => {
++    const app = await dashboard(t);
++    app.state.autoReload = false;
++    await app.reset(false);
++    app.assertIdle();
++    assert.equal(app.state.autoReload, false);
++    assert.equal(app.stored.get('userDnrRules'), 'previous rule');
++});
++
++for ( const failure of [ 'failImport', 'failStorage' ] ) {
++    test(`reset ${failure} is handled and releases busy state`, { timeout: 5000 }, async t => {
++        const app = await dashboard(t);
++        app.controls[failure] = true;
++        await app.reset();
++        app.assertIdle();
++        assert.notEqual(app.diagnostics.length, 0, 'reset failure must be reported');
++        app.controls[failure] = false;
++        await app.reset();
++        app.assertIdle();
++        assert.equal(app.stored.has('userDnrRules'), false);
++    });
++}

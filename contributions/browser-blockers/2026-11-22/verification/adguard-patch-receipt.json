@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "adguard-patch-receipt.json",
+    "sha256": "82a3dc9c2efb17bf7c98bdbeca70d81c64b7def8731759cd950d6effdffca6de",
+    "bytes": 6933
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": []
+  },
+  "evidence": {
+    "observed_at": "2026-11-22T15:06:58.987Z",
+    "command": "../adguard-tools/node/node.exe ../adguard-export-patch.mjs",
+    "cwd": "${ADGUARD_ROOT}",
+    "head": "6beedf03743d53691162a11541360071cce5e55a",
+    "branch": "research/settings-enhancements",
+    "node": "v22.23.5",
+    "script_sha256": "66b7b95134acd3c26177f0fbae626c8cf7e60bec8a13dc99bd76242bd7b3b8f6",
+    "changed_files": [
+      "Extension/src/pages/options/components/General/General.tsx",
+      "tests/src/pages/options/components/General/General.test.tsx"
+    ],
+    "files": [
+      {
+        "path": "Extension/src/pages/options/components/General/General.tsx",
+        "sha256": "850a69caeba872a82211489a1fa33a8f7bbde724fb578451d39436abfe20b1f1",
+        "normalized_sha256": "cd312b0cb05906c7178e74fd29ccf1711f6168245bbcf6ffe12bee137026d078",
+        "base_blob": "dd5f93cee6af3e31c681262fa678fbee44c3528d",
+        "worktree_blob": "c4d1ce8b9fcd0b05bbabea78b68994b45a1494a0",
+        "same_normalized_text_as_base": false,
+        "crlf_count": 470,
+        "lf_count": 479
+      },
+      {
+        "path": "tests/src/pages/options/components/General/General.test.tsx",
+        "sha256": "1889ebdd9ec111e553c04bf64f0452c5d6f5d470e080f6c2f9b7f799b2c6c539",
+        "normalized_sha256": "eee8348bf64221425a20f9c174ca065835d92c17188b9268e75c98198419b92b",
+        "base_blob": "0b932f3c0470d376138fcc202c036a55ab4bdd1c",
+        "worktree_blob": "f119027e016feeb5b51f0fd5bd44717dabe4bb9d",
+        "same_normalized_text_as_base": false,
+        "crlf_count": 486,
+        "lf_count": 557
+      },
+      {
+        "path": "tests/src/background/api/settings/configuration-export.test.ts",
+        "sha256": "8bc1095c841816fb10ffdc329d8c76c0a8edd24186b368d1e3e63d0287e32ee9",
+        "normalized_sha256": "487f9f3fd0a5ad0962d5c269c52a917b1e57155e7999b45f4259d9b55c643fa9",
+        "base_blob": "2e81e896286d06eeb9412db9b1813f5e3f4de36b",
+        "worktree_blob": "2e81e896286d06eeb9412db9b1813f5e3f4de36b",
+        "same_normalized_text_as_base": true,
+        "crlf_count": 350,
+        "lf_count": 354
+      },
+      {
+        "path": "tests/src/background/api/settings/configuration-import.test.ts",
+        "sha256": "01d4e63bb665b032aab725093269d9edec51ccbd27ffee483973dc3bbe111fdd",
+        "normalized_sha256": "7f51256cdbc4b0b016be26bb0e052af90f57d61ed24bb88ed0af3ed342fe0b1d",
+        "base_blob": "dcb433719128b4dfb4493bdcec6f8900ff64d5f6",
+        "worktree_blob": "dcb433719128b4dfb4493bdcec6f8900ff64d5f6",
+        "same_normalized_text_as_base": true,
+        "crlf_count": 843,
+        "lf_count": 845
+      },
+      {
+        "path": "package.json",
+        "sha256": "f87e86fa753b6e02c542a870fa281bb4adc42cdc90aa058aecfc61541bf249b5",
+        "normalized_sha256": "60ab45891de511936e929fbf905b69a9326e9b9a6901ae4f84c21ef07d9450a4",
+        "base_blob": "75f276d1b07263d36a8a649377c00d012969e25a",
+        "worktree_blob": "75f276d1b07263d36a8a649377c00d012969e25a",
+        "same_normalized_text_as_base": true,
+        "crlf_count": 197,
+        "lf_count": 197
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "88864bf950011b898aaf9aab49c44382d1248e4b1ec003db647371714b83ad2d",
+        "normalized_sha256": "567490781255dfd6f099c53f2234a8c601df809e187aac3b967b00be889c2852",
+        "base_blob": "ca9e4a35657acf816e1a4eea8849f73b2d15c1d7",
+        "worktree_blob": "ca9e4a35657acf816e1a4eea8849f73b2d15c1d7",
+        "same_normalized_text_as_base": true,
+        "crlf_count": 12160,
+        "lf_count": 12160
+      }
+    ],
+    "patch_path": "${TASK_ROOT}/adguard-optional-stealth-import.patch",
+    "patch_sha256": "6154353ae7266b2ec9b0cff0c8d9a4ddb3f036e8f25854de37996d7b1cf36ca1",
+    "patch_bytes": 5593,
+    "patch_stat": ".../pages/options/components/General/General.tsx   |  5 ++\n .../options/components/General/General.test.tsx    | 81 +++++++++++++++++-----\n 2 files changed, 68 insertions(+), 18 deletions(-)",
+    "green_receipt_path": "${TASK_ROOT}/adguard-preflight-green.json",
+    "green_receipt_sha256": "d95282245305084e793626fc3ff50c29333b52b8b36635a74244e1422df06115",
+    "green_inputs_match": true,
+    "checks": [
+      {
+        "command": [
+          "git",
+          "diff",
+          "--no-ext-diff",
+          "--check",
+          "6beedf03743d53691162a11541360071cce5e55a",
+          "--",
+          "Extension/src/pages/options/components/General/General.tsx",
+          "tests/src/pages/options/components/General/General.test.tsx"
+        ],
+        "exit_code": 0,
+        "signal": null,
+        "output": "warning: in the working copy of 'Extension/src/pages/options/components/General/General.tsx', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/src/pages/options/components/General/General.test.tsx', LF will be replaced by CRLF the next time Git touches it\n"
+      },
+      {
+        "command": [
+          "git",
+          "apply",
+          "--cached",
+          "--check",
+          "${TASK_ROOT}/adguard-optional-stealth-import.patch"
+        ],
+        "exit_code": 0,
+        "signal": null,
+        "output": ""
+      },
+      {
+        "command": [
+          "git",
+          "apply",
+          "--reverse",
+          "--check",
+          "${TASK_ROOT}/adguard-optional-stealth-import.patch"
+        ],
+        "exit_code": 0,
+        "signal": null,
+        "output": ""
+      }
+    ],
+    "check_log_path": "${TASK_ROOT}/adguard-final-diff-check.log",
+    "check_log_sha256": "8841e8ddf06db6ce85cc52ab3275be4c7f11595706b3107649a702dae610ff8e",
+    "git_status": "M Extension/src/pages/options/components/General/General.tsx\n M tests/src/background/api/settings/configuration-export.test.ts\n M tests/src/background/api/settings/configuration-import.test.ts\n M tests/src/pages/options/components/General/General.test.tsx",
+    "index_content_matches_base": true,
+    "line_ending_only_paths": [
+      "tests/src/background/api/settings/configuration-export.test.ts",
+      "tests/src/background/api/settings/configuration-import.test.ts"
+    ],
+    "dirty_explanation": "The initial checkout was clean. This lane added then archived comma-regression tests and removed only those additions. Both configuration test files match their original normalized Git blobs; remaining status entries are line-ending/stat differences from those lane edits, with zero content diff. Files are preserved without an index refresh or forced rewrite.",
+    "limitations": "Patch application checks are read-only against the base-matching index and current worktree. They do not run Vitest, types, lint or browser behavior. The deferred comma patch is research evidence, not part of this deliverable."
+  }
+}

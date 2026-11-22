@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "kind": "sanitized_verification_projection",
+  "source": {
+    "task_relative_path": "ubol-dependencies-supplement-receipt.json",
+    "sha256": "654edec3480f1075d5a612d74b81e933c97d753c395ebec9d5662aeb00bc5515",
+    "bytes": 2093
+  },
+  "projection": {
+    "original_bytes_preserved": false,
+    "host_paths": "Named portable placeholders replace local roots; original commands otherwise retained.",
+    "execution_identities": "Session, process, extension-instance and job identifiers removed.",
+    "private_endpoints": "Internal service origins replaced by named placeholders; package identity and failure outcome retained.",
+    "hash_semantics": "Hashes inside evidence retain their original input/raw-artifact meaning. They are not hashes of these projected public files.",
+    "omitted_fields": [
+      "authorization"
+    ],
+    "not_reexecuted": true,
+    "reference_semantics": "Embedded filenames refer to the original task layout. Public mappings and unshipped dependencies are recorded in coverage-summary.json.",
+    "notes": []
+  },
+  "evidence": {
+    "command": [
+      "${NODE_HOME}/node.exe",
+      "${NODE_HOME}/node_modules/npm/bin/npm-cli.js",
+      "ci",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      "--include=dev",
+      "--fetch-retries=0",
+      "--fetch-timeout=20000",
+      "--cache",
+      "../ubol-npm-cache"
+    ],
+    "cwd": "${UBLOCK_ROOT}/",
+    "started_at": "2026-11-22T15:04:40.214Z",
+    "completed_at": "2026-11-22T15:04:50.853Z",
+    "exit_code": 0,
+    "error": null,
+    "signal": null,
+    "hashes_before": {
+      "platform/mv3/extension/js/settings.js": "a69076d6ea75665912ec49ea9a3836bd3d795cc584bd2c765b93ea833ee6afb3",
+      "platform/mv3/tests/settings-recovery.test.mjs": "a27254320ec8ba5ab496dfb1aeeb43ef778e395942db3c6601ef0d18c55016f5",
+      "package.json": "3d24bba28a121a9c15e7eb895a8534cacf296a779c51dde426dcf12d535f3b99",
+      "package-lock.json": "65e2d4ecd8520253d1c65c01502b38af0d47f8c0f3b2a13df3ef05f394bc3f11",
+      "../ubol-settings-recovery.patch": "78640595d49f8f85bfe7e6a12d309aa253585048463a1cdbbe4b5370e9ad5996"
+    },
+    "hashes_after": {
+      "platform/mv3/extension/js/settings.js": "a69076d6ea75665912ec49ea9a3836bd3d795cc584bd2c765b93ea833ee6afb3",
+      "platform/mv3/tests/settings-recovery.test.mjs": "a27254320ec8ba5ab496dfb1aeeb43ef778e395942db3c6601ef0d18c55016f5",
+      "package.json": "3d24bba28a121a9c15e7eb895a8534cacf296a779c51dde426dcf12d535f3b99",
+      "package-lock.json": "65e2d4ecd8520253d1c65c01502b38af0d47f8c0f3b2a13df3ef05f394bc3f11",
+      "../ubol-settings-recovery.patch": "78640595d49f8f85bfe7e6a12d309aa253585048463a1cdbbe4b5370e9ad5996"
+    },
+    "inputs_unchanged": true,
+    "log": "${TASK_ROOT}/ubol-dependencies-supplement.log",
+    "dependency_version": "9.34.0"
+  }
+}

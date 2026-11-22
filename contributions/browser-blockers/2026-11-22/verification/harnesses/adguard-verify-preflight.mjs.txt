@@ -1,0 +1,108 @@
+/* {"kind":"verifier_source_reference_projection","source":{"task_relative_path":"adguard-verify-preflight.mjs","sha256":"40dc4eaf334cb1eb2ad8e10e26a7e0ee5780833d22dbc1da0676630df7aa4ece","bytes":5852},"host_path_redaction":true,"execution_identity_redaction":true,"private_endpoint_redaction":true,"not_reexecuted":true,"executable_as_packaged":false,"note":"Text reference only. Restore original task-relative layout and replace symbolic roots before any separately authorized reproduction."} */
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import vm from 'node:vm';
+
+const root = path.dirname(fileURLToPath(import.meta.url));
+const checkout = path.join(root, 'AdguardBrowserExtension');
+const phase = process.argv[2];
+assert.ok(['red', 'green'].includes(phase), 'Expected red or green phase');
+const cache = path.join(checkout, 'node_modules/.pnpm');
+const require = createRequire(import.meta.url);
+const ts = require(path.join(cache, 'typescript@5.6.3/node_modules/typescript/lib/typescript.js'));
+const lodash = await import(pathToFileURL(path.join(cache, 'lodash-es@4.17.21/node_modules/lodash-es/lodash.js')));
+const sourcePath = 'Extension/src/pages/options/components/General/General.tsx';
+const unknownPath = 'Extension/src/common/unknown.ts';
+const testPath = 'tests/src/pages/options/components/General/General.test.tsx';
+const source = readFileSync(path.join(checkout, sourcePath), 'utf8');
+const unknownSource = readFileSync(path.join(checkout, unknownPath), 'utf8');
+const hash = value => createHash('sha256').update(value).digest('hex');
+const syntax = [];
+
+function compile(text, filename) {
+    const result = ts.transpileModule(text, {
+        fileName: filename,
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React },
+        reportDiagnostics: true,
+    });
+    const errors = (result.diagnostics ?? []).filter(a => a.category === ts.DiagnosticCategory.Error);
+    syntax.push({ file: filename, errors: errors.map(a => ts.flattenDiagnosticMessageText(a.messageText, '\n')) });
+    assert.equal(errors.length, 0, `TypeScript syntax errors in ${filename}`);
+    return result.outputText;
+}
+
+function evaluate(text, filename, bindings = {}) {
+    const exports = {};
+    vm.runInNewContext(compile(text, filename), { exports, ...bindings }, { filename, timeout: 2000 });
+    return exports;
+}
+
+const { Unknown } = evaluate(unknownSource, unknownPath, {
+    require: name => {
+        assert.equal(name, 'lodash-es');
+        return lodash;
+    },
+});
+const ast = ts.createSourceFile(sourcePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+const declaration = ast.statements.find(statement => ts.isVariableStatement(statement)
+    && statement.declarationList.declarations.some(item => item.name.getText(ast) === 'getBlockWebRtcSetting'));
+assert.ok(declaration, 'Production preflight helper was not found');
+const helperText = declaration.getText(ast);
+const { getBlockWebRtcSetting } = evaluate(`${helperText}\nexport { getBlockWebRtcSetting };`, sourcePath, { Unknown });
+
+const cases = [
+    { name: 'absent optional stealth section requires no privacy permission', input: '{"protocol-version":"2.0"}', want: false },
+    { name: 'explicit WebRTC false requires no privacy permission', input: '{"stealth":{"stealth-block-webrtc":false}}', want: false },
+    { name: 'explicit WebRTC true retains privacy permission preflight', input: '{"stealth":{"stealth-block-webrtc":true}}', want: true },
+    { name: 'present null stealth section is rejected', input: '{"stealth":null}', throws: true },
+    { name: 'present empty stealth section is rejected', input: '{"stealth":{}}', throws: true },
+    { name: 'string WebRTC value is rejected', input: '{"stealth":{"stealth-block-webrtc":"false"}}', throws: true },
+    { name: 'numeric WebRTC value is rejected', input: '{"stealth":{"stealth-block-webrtc":1}}', throws: true },
+    { name: 'null WebRTC value is rejected', input: '{"stealth":{"stealth-block-webrtc":null}}', throws: true },
+    { name: 'invalid JSON is rejected', input: '{', throws: true },
+];
+const results = cases.map(test => {
+    try {
+        if (test.throws) {
+            assert.throws(() => getBlockWebRtcSetting(test.input));
+        } else {
+            assert.equal(getBlockWebRtcSetting(test.input), test.want);
+        }
+        return { name: test.name, status: 'passed' };
+    } catch (error) {
+        return { name: test.name, status: 'failed', error: error.message };
+    }
+});
+compile(source, sourcePath);
+compile(readFileSync(path.join(checkout, testPath), 'utf8'), testPath);
+const failed = results.filter(a => a.status === 'failed').length;
+const receipt = {
+    observed_at: new Date().toISOString(),
+    phase,
+    command: `../adguard-tools/node/node.exe ../adguard-verify-preflight.mjs ${phase}`,
+    cwd: checkout,
+    base: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: checkout, encoding: 'utf8' }).trim(),
+    node: process.version,
+    typescript: ts.version,
+    lodash: '4.17.21',
+    inputs: Object.fromEntries([sourcePath, unknownPath, testPath].map(p => [p, hash(readFileSync(path.join(checkout, p)))])),
+    helper_sha256: hash(helperText),
+    verifier_sha256: hash(readFileSync(fileURLToPath(import.meta.url))),
+    results,
+    total: results.length,
+    passed: results.length - failed,
+    failed,
+    syntax,
+    exit_code: failed ? 1 : 0,
+    coverage: 'Executes the actual production preflight helper extracted by the TypeScript AST, with real Unknown and pinned lodash. Also transpiles changed TSX files for syntax diagnostics.',
+    limitations: 'Not a pnpm/Vitest pass, React interaction test, full schema validation, TypeScript type check or browser test. The first fixture intentionally isolates the preflight; backend schema validity is asserted in the added upstream Vitest test.',
+};
+const receiptPath = path.join(root, `adguard-preflight-${phase}.json`);
+writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);
+console.log(JSON.stringify(receipt, null, 2));
+process.exitCode = receipt.exit_code;
