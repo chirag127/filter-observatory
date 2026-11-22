@@ -5,9 +5,9 @@ delivery, compatibility, and real-world effectiveness.
 
 **Status: initial implementation; live readiness is partial.** Companion packages,
 controlled current-Chrome capture, and desktop/narrow dashboard flows have verification
-evidence. The pinned Tranco 46YVX cohort has eight retained captures from 11 attempted
-entries; 289 entries remain unvisited after recurring browser-bridge disconnections.
-Native companion installation/Ctrl+Q and live upstream
+evidence. The pinned Tranco 46YVX cohort has 300 recorded attempts: **170 captures,
+129 failures and one preserved cancellation**. Cleanup and historical-evidence preservation
+passed; filter effectiveness remains unassessed. Native companion installation/Ctrl+Q and live upstream
 delivery remain unverified. SAP production classification did not meet its bounded
 qualification criteria. See the [delivery ledger](../../../../../docs/okf/filter-observatory/tasks/2026-11-21-initial-delivery.md)
 for revision-bound checks, remaining work, and resumable run state.
