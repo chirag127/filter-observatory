@@ -1,0 +1,19 @@
+[
+  {
+    "id": 301,
+    "name": "EasyList",
+    "homeUrl": "https://easylist.to/",
+    "issuesUrl": "https://github.com/easylist/easylist/issues",
+    "syntaxIds": [3],
+    "tagIds": [2],
+    "maintainerIds": [7],
+    "viewUrls": [
+      { "segmentNumber": 1, "primariness": 1, "url": "https://easylist.to/easylist/easylist.txt" },
+      { "segmentNumber": 1, "primariness": 2, "url": "https://fanboy.co.nz/easylist.txt" }
+    ],
+    "forkFilterListIds": [166, 565],
+    "includedInFilterListIds": [11, 13, 168],
+    "includesFilterListIds": [],
+    "dependencyFilterListIds": []
+  }
+]

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Filter Observatory</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Skip to observations</a>
+  <header class="masthead">
+    <div class="identity"><span class="aperture" aria-hidden="true"></span><div><h1>Filter Observatory</h1><p>Evidence from your browser</p></div></div>
+    <div class="connection"><span id="connection-state" role="status">Worker disconnected</span><button id="refresh" type="button" disabled>Refresh</button><button id="disconnect" class="quiet" type="button" hidden>Disconnect</button></div>
+  </header>
+  <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+  <section id="connection-panel" class="connect-panel" aria-labelledby="connect-heading">
+    <div><h2 id="connect-heading">Connect to your local worker</h2><p>The connection token is in <code>worker.token</code> in your state directory. It stays in this page's memory.</p></div>
+    <form id="connect-form"><label for="worker-token">Worker token</label><div class="inline"><input id="worker-token" name="worker-token" type="password" autocomplete="off" required spellcheck="false"><button type="submit">Connect</button></div></form>
+  </section>
+  <div class="desk">
+    <nav class="rail" aria-label="Observation views">
+      <button type="button" data-view="captures" aria-current="page">Captures <span id="capture-count">0</span></button>
+      <button type="button" data-view="runs">Site runs <span id="run-count">0</span></button>
+      <button type="button" data-view="catalog">Filter lists <span id="catalog-count">0</span></button>
+      <button type="button" data-view="reports">Reports <span id="report-count">0</span></button>
+      <div class="rail-context"><p>Current session</p><dl><dt>Analysis</dt><dd id="analysis-mode">Not connected</dd><dt>Publication</dt><dd id="publication-mode">Not connected</dd><dt>Browser</dt><dd id="browser-name">Not connected</dd></dl></div>
+      <p class="capture-hint">Press <kbd>Ctrl</kbd> + <kbd>Q</kbd> in Chrome with the companion installed to collect an observation.</p>
+    </nav>
+    <main id="workspace" tabindex="-1">
+      <section id="operations-panel" class="operation-panel" aria-labelledby="operations-heading" hidden><h2 id="operations-heading">Worker operations</h2><ol id="operations-list"></ol></section>
+      <section id="view-captures" class="view" aria-labelledby="captures-heading">
+        <div class="section-heading"><div><h2 id="captures-heading">Captured observations</h2><p>Follow an observation from its original evidence to a report.</p></div><button id="process" type="button" data-needs-connection disabled>Process queue</button></div>
+        <div id="recovery" class="recovery" hidden><p id="recovery-message">An inactive comparison needs recovery. Its original blocker state is saved.</p><button id="recover" type="button" data-needs-connection disabled>Restore blocker state</button></div>
+        <div class="capture-pagination"><p id="capture-scope" class="form-note" role="status">Connect to load capture history.</p><button id="load-older" class="secondary" type="button" data-needs-connection disabled hidden>Load older captures</button></div>
+        <div class="observation-layout"><div id="captures-list" class="observation-list"><p class="empty">Connect to see captures from this worker.</p></div><aside id="capture-inspector" class="inspector" aria-label="Selected capture"><p class="empty">Select an observation to inspect its evidence.</p></aside></div>
+      </section>
+      <section id="view-runs" class="view" aria-labelledby="runs-heading" hidden>
+        <div class="section-heading"><div><h2 id="runs-heading">Reproducible site runs</h2><p>Each original entry keeps its outcome, including unreachable pages.</p></div></div>
+        <details class="import-panel"><summary>Import a ranked site manifest</summary><form id="corpus-form">
+          <div class="form-row"><div><label for="corpus-format">Format</label><select id="corpus-format"><option value="csv">CSV (rank, domain)</option><option value="json">JSON</option></select></div><div><label for="corpus-file">Read from a file</label><input id="corpus-file" type="file" accept=".csv,.json,text/csv,application/json"></div></div>
+          <label for="corpus-input">Manifest</label><textarea id="corpus-input" rows="6" required placeholder="rank,domain&#10;1,example.com"></textarea>
+          <div class="form-row"><div><label for="corpus-source">Source override (optional)</label><input id="corpus-source" name="source" autocomplete="off" placeholder="Use the manifest's source…"></div><div><label for="corpus-snapshot">Snapshot override (optional)</label><input id="corpus-snapshot" name="snapshot" autocomplete="off" placeholder="Use the manifest's snapshot…"></div></div>
+          <p class="form-note">Leave overrides empty to keep embedded JSON provenance. Without source metadata, the worker records manual / unknown snapshot.</p>
+          <label class="check-label"><input id="corpus-compare" type="checkbox"> Compare AdGuard enabled/disabled and restore the original state</label>
+          <p class="form-note">Imports at most the first 300 original entries. Comparison runs require browser changes enabled in local configuration.</p>
+          <button type="submit" data-needs-connection disabled>Create run</button>
+        </form></details>
+        <div id="runs-list"><p class="empty">Your imported runs will appear here.</p></div>
+      </section>
+      <section id="view-catalog" class="view" aria-labelledby="catalog-heading" hidden>
+        <div class="section-heading"><div><h2 id="catalog-heading">Filter-list field notes</h2><p>Delivery, maintenance and compatibility are separate observations.</p></div></div>
+        <form id="discover-form" class="toolbar"><label for="catalog-source">Discover from</label><select id="catalog-source"><option value="adguard">AdGuard registry</option><option value="ubo">uBlock Origin assets</option><option value="filterlists">FilterLists directory</option></select><button type="submit" data-needs-connection disabled>Import catalog</button><button id="check-feeds" class="secondary" type="button" data-needs-connection disabled>Check first 25 lists</button></form>
+        <div id="catalog-imports" aria-label="Latest catalog import outcomes"></div>
+        <label for="catalog-search">Find an official name, source or owner</label><input id="catalog-search" type="search" placeholder="Search your imported catalog">
+        <p id="catalog-scope" class="form-note">Catalog membership is not proof that a list works in your blocker.</p>
+        <div id="catalog-list"><p class="empty">Import a catalog to explore its lists and published variants.</p></div>
+      </section>
+      <section id="view-reports" class="view" aria-labelledby="reports-heading" hidden>
+        <div class="section-heading"><div><h2 id="reports-heading">Reports and follow-up</h2><p>Every delivery retains its destination, evidence and remote receipt.</p></div><button id="refresh-reports" type="button" data-needs-connection disabled>Process outbox</button></div>
+        <div id="reports-list"><p class="empty">Reports appear after evidence analysis. Deferred reports show the missing requirements.</p></div>
+      </section>
+      <details class="activity"><summary>Worker activity</summary><ol id="events-list"><li>No activity loaded.</li></ol></details>
+    </main>
+  </div>
+  <footer class="hire-me"><h3>Hire me</h3><p>Chirag Singhal: building free, open APIs and tools.</p><p><a href="mailto:chirag@oriz.in">chirag@oriz.in</a> · <a href="https://github.com/chirag127">GitHub</a> · <a href="https://www.linkedin.com/in/chirag127/">LinkedIn</a> · <a href="https://x.com/singhal127">X</a> · <a href="https://www.youtube.com/@ChiragSinghal127">YouTube</a> · <a href="https://www.instagram.com/chiragsinghal127/">Instagram</a> · <a href="https://www.reddit.com/user/Far_Macaron_9910/">Reddit</a> · <a href="https://buymeacoffee.com/chirag127">Buy me a coffee</a></p></footer>
+</body>
+</html>

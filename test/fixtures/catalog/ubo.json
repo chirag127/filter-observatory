@@ -1,0 +1,30 @@
+{
+  "assets.json": { "content": "internal", "contentURL": "assets/assets.json" },
+  "ublock-cookies-adguard": {
+    "content": "filters",
+    "title": "uBlock filters – Cookie Notices",
+    "parent": "AdGuard/uBO – Cookie Notices",
+    "group": "annoyances",
+    "tags": "annoyances cookies",
+    "off": true,
+    "contentURL": "https://ublockorigin.github.io/uAssets/filters/annoyances-cookies.txt",
+    "supportURL": "https://github.com/uBlockOrigin/uAssets"
+  },
+  "ublock-cookies-easylist": {
+    "content": "filters",
+    "title": "uBlock filters – Cookie Notices",
+    "parent": "EasyList/uBO – Cookie Notices",
+    "group": "annoyances",
+    "off": true,
+    "contentURL": ["https://ublockorigin.github.io/uAssets/filters/annoyances-cookies.txt", "assets/ublock/cookies.txt"],
+    "cdnURLs": ["https://ublockorigin.pages.dev/filters/annoyances-cookies.txt"],
+    "patchURLs": ["https://ublockorigin.pages.dev/filters/"],
+    "supportURL": "https://github.com/uBlockOrigin/uAssets"
+  },
+  "adguard-generic": {
+    "content": "filters",
+    "title": "AdGuard – Ads",
+    "contentURL": "https://filters.adtidy.org/extension/ublock/filters/2_without_easylist.txt",
+    "supportURL": "https://github.com/AdguardTeam/AdguardFilters#adguard-filters"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "filter-observatory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Evidence-backed audits of installed blockers and filter lists",
+  "license": "MIT",
+  "engines": { "node": "^22.22.2 || ^24.15.0 || >=26.0.0" },
+  "bin": { "filter-observatory": "src/cli.mjs" },
+  "scripts": {
+    "start": "node src/cli.mjs serve",
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check src/cli.mjs && node --check src/server.mjs",
+    "build:companion": "npm --prefix companion run build",
+    "build:firefox": "npm --prefix companion run build:firefox",
+    "zip:companion": "npm --prefix companion run zip",
+    "zip:firefox": "npm --prefix companion run zip:firefox"
+  },
+  "dependencies": { "ajv": "8.17.1", "pngjs": "7.0.0" },
+  "devDependencies": { "jsdom": "31.0.1" }
+}

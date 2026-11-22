@@ -1,0 +1,110 @@
+:root {
+  color-scheme: light;
+  --mineral: #eaf0f4;
+  --paper: #f9fbfc;
+  --ink: #172e42;
+  --muted: #506477;
+  --rule: #bdccd7;
+  --instrument: #174d7d;
+  --good: #245a44;
+  --caution: #785515;
+  --error: #962d35;
+  font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--mineral);
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; }
+body.popup { width: 400px; max-width: 100vw; }
+[hidden] { display: none !important; }
+h1, h2, h3, p, dl { margin: 0; }
+h1 { font-size: 1.5rem; font-weight: 650; line-height: 1.2; }
+h2 { font-size: 1rem; font-weight: 650; }
+h3 { font-size: .85rem; font-weight: 650; }
+a { color: var(--instrument); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+button, input { font: inherit; }
+button, a, summary, input { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid var(--instrument); outline-offset: 3px; }
+
+.page { padding: 20px; }
+.page--options { width: min(100%, 1000px); margin-inline: auto; padding: 36px 28px 24px; }
+.masthead { border-top: 4px solid var(--instrument); padding-top: 14px; margin-bottom: 14px; }
+.subtitle, .product-name { color: var(--muted); margin-top: 4px; }
+.product-name { margin: 0 0 8px; font-weight: 600; }
+.page--options h1 { font-size: 2rem; }
+.content { min-width: 0; }
+.operation-status { color: var(--muted); font-size: .85rem; min-height: 1.25rem; margin-bottom: 10px; }
+.operation-error, .stale-notice { border-left: 3px solid currentColor; padding: 8px 10px; margin-bottom: 14px; overflow-wrap: anywhere; }
+.operation-error { color: var(--error); background: var(--paper); }
+.stale-notice { color: var(--caution); font-size: .9rem; }
+.workspace, .status-column { min-width: 0; }
+.status-stack { display: grid; gap: 12px; }
+.shortcut-panel { border-left: 3px solid var(--instrument); background: var(--paper); padding: 10px 12px; }
+.shortcut-panel h2 { margin-bottom: 6px; }
+.shortcut-key { display: inline-block; font: 650 1.12rem/1.4 "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; color: var(--instrument); margin-bottom: 5px; overflow-wrap: anywhere; }
+.shortcut-key[data-assigned="false"] { font-size: 1rem; color: var(--caution); }
+.status-section { border-bottom: 1px solid var(--rule); padding-bottom: 12px; min-width: 0; }
+.status-section h2 { display: inline; margin-right: 8px; }
+.state-label { display: inline; font-size: .9rem; font-weight: 600; color: var(--muted); }
+.state-label[data-state="online"], .state-label[data-state="saved"] { color: var(--good); }
+.state-label[data-state="offline"], .state-label[data-state="unconfigured"], .state-label[data-state="checking"], .state-label[data-state="capturing"] { color: var(--caution); }
+.state-label[data-state="error"], .state-label[data-state="unauthorized"] { color: var(--error); }
+.detail { margin-top: 5px; font-size: .9rem; overflow-wrap: anywhere; }
+.endpoint { font-size: .86rem; color: var(--muted); margin-top: 5px; overflow-wrap: anywhere; }
+.timestamp, .footnote { font-size: .8rem; color: var(--muted); margin-top: 5px; overflow-wrap: anywhere; }
+.queue-summary { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 10px; margin-top: 9px; }
+.queue-summary > div { min-width: 0; }
+.queue-summary dt { font-size: .82rem; color: var(--muted); }
+.queue-summary dd { margin: 1px 0 0; font-size: 1.2rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.inline-error, .field-error { color: var(--error); font-size: .9rem; margin-top: 7px; overflow-wrap: anywhere; }
+.delivery-details { margin-top: 6px; font-size: .85rem; }
+summary { cursor: pointer; color: var(--instrument); padding: 4px 0; }
+.metadata { margin-top: 5px; }
+.metadata > div { margin-bottom: 8px; }
+.metadata dt { color: var(--muted); }
+.metadata dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+.actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.status-actions { margin-top: 14px; }
+.button { appearance: none; border: 1px solid var(--instrument); border-radius: 4px; padding: 7px 10px; min-height: 36px; color: var(--instrument); background: var(--paper); font-size: .9rem; font-weight: 600; cursor: pointer; }
+.button:hover:not(:disabled) { background: var(--mineral); }
+.button--primary { background: var(--instrument); color: var(--paper); }
+.button--primary:hover:not(:disabled) { background: var(--ink); }
+.button--quiet { border-color: transparent; padding-inline: 4px; text-decoration: underline; text-underline-offset: 3px; }
+.button:disabled { color: var(--muted); background: var(--mineral); border-color: var(--rule); cursor: default; }
+.button--quiet:disabled { border-color: transparent; text-decoration: none; }
+.settings-link { display: inline-block; margin-top: 12px; padding-block: 3px; font-size: .92rem; }
+.connection-form { padding: 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; align-self: start; min-width: 0; }
+.connection-form label { display: block; margin-top: 22px; margin-bottom: 6px; font-weight: 600; }
+.connection-form input { width: 100%; min-width: 0; min-height: 42px; border: 1px solid var(--muted); border-radius: 4px; padding: 8px 10px; background: var(--paper); color: var(--ink); }
+.connection-form input:disabled { background: var(--mineral); color: var(--muted); }
+.connection-form input[aria-invalid="true"] { border: 2px solid var(--error); }
+.field-hint { font-size: .86rem; color: var(--muted); margin-top: 7px; max-width: 65ch; }
+.connection-form .actions { margin-top: 22px; }
+.page--options .workspace { display: grid; gap: 26px; }
+.hire-me { border-top: 1px solid var(--rule); margin-top: 20px; padding-top: 12px; color: var(--muted); font-size: .76rem; line-height: 1.55; }
+.hire-me h3 { color: var(--ink); margin-bottom: 3px; }
+.contact-links { margin-top: 5px; }
+.contact-links a { display: inline-block; }
+.contact-links a:first-child { font-weight: 650; }
+
+@media (min-width: 800px) {
+  .page--options .workspace { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 30px; }
+  .page--options .masthead { margin-bottom: 20px; }
+  .page--options .hire-me { margin-top: 28px; }
+}
+
+@media (max-width: 360px) {
+  .page, .page--options { padding: 16px; }
+  .connection-form { padding: 14px; }
+  h1 { font-size: 1.35rem; }
+}
+
+@media (forced-colors: active) {
+  .button, .shortcut-panel, .connection-form { border-color: ButtonText; }
+  .state-label, .shortcut-key { color: CanvasText; }
+}
