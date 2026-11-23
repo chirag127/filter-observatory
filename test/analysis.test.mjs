@@ -1065,21 +1065,52 @@ test('pre-aborted work is cancelled before image processing or dispatch', async 
   assert.equal(JSON.stringify(result).includes('private cancellation reason'), false);
 });
 
+test('deadline reached during preparation prevents transport dispatch', async (t) => {
+  let reads = 0;
+  t.mock.method(performance, 'now', () => (reads++ === 0 ? 0 : 30));
+  let calls = 0;
+  const result = await analyzeEvidence(
+    captureFixture(),
+    { ...providerFixture, timeoutMs: 30 },
+    {
+      fetchImpl: async () => {
+        calls++;
+        throw new Error('Unexpected dispatch');
+      },
+    },
+  );
+  assert.equal(result.state, 'failed');
+  assert.equal(result.reason, 'timeout');
+  assert.equal(result.provenance.attempts, 0);
+  assert.equal(calls, 0);
+});
+
 test(
   'deadline terminates a fetch double that ignores the abort signal',
   { timeout: 2000 },
-  async () => {
-    let transportSignal;
-    const result = await analyzeEvidence(
+  async (t) => {
+    t.mock.timers.enable({ apis: ['setTimeout'] });
+    let now = 0;
+    t.mock.method(performance, 'now', () => now);
+    let transportSignal, entered;
+    const dispatched = new Promise((resolve) => {
+      entered = resolve;
+    });
+    const pending = analyzeEvidence(
       captureFixture(),
       { ...providerFixture, timeoutMs: 30 },
       {
         fetchImpl: async (_url, init) => {
           transportSignal = init.signal;
+          entered();
           return new Promise(() => {});
         },
       },
     );
+    await dispatched;
+    now = 30;
+    t.mock.timers.tick(30);
+    const result = await pending;
     assert.equal(result.state, 'failed');
     assert.equal(result.reason, 'timeout');
     assert.equal(result.provenance.attempts, 1);
