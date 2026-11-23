@@ -102,6 +102,13 @@ test('outbox fingerprint deduplication preserves a submitted receipt', (t) => {
   assert.equal(store.claimReport(), null);
 });
 
+test('absent finding IDs return no finding without binding undefined to SQLite', (t) => {
+  const { store } = fixture(t);
+  assert.equal(store.finding(), null);
+  assert.equal(store.finding(null), null);
+  assert.equal(store.finding('unknown-finding'), null);
+});
+
 test('identical ready drafts are revised and claimable while protected drafts stay unchanged', (t) => {
   const { store } = fixture(t);
   const prepared = {

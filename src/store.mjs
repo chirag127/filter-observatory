@@ -766,6 +766,8 @@ export function openStore(directory) {
         .map((row) => decode(row.payload));
     },
     finding(id) {
+      // Legacy drafts can lack a finding ID; Node 22/24 SQLite cannot bind undefined.
+      if (id === undefined || id === null) return null;
       return decode(db.prepare('SELECT payload FROM findings WHERE id=?').get(id)?.payload);
     },
     updateFinding(id, payload) {
