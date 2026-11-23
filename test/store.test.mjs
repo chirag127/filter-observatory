@@ -153,6 +153,14 @@ test('current catalog retirement preserves history, source boundaries and reappe
     ['historical', 'other'],
   );
   assert.equal(f.store.catalog({ includeRetired: true }).length, 4);
+  for (const day of ['23', '24']) {
+    f.store.saveCatalog(current([record(`stale-${day}`)], day));
+    assert.equal(
+      f.store.catalog().some((item) => item.id === `stale-${day}`),
+      false,
+    );
+    assert.equal(f.store.listRecords(`catalog-history:stale-${day}:`).records.length, 1);
+  }
   const before = f.store.catalog({ includeRetired: true });
   assert.throws(
     () =>

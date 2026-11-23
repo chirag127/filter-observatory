@@ -998,7 +998,7 @@ export function openStore(directory) {
           const membership = store.getRecord(`catalog-membership:${record.id}`);
           store.setRecord(`catalog-history:${record.id}:${captureDigest(record)}`, record);
           // Once managed by a current snapshot, historical and partial imports are evidence only.
-          if (membership && !newer) continue;
+          if ((membership || (authoritative && previous)) && !newer) continue;
           if (
             newer &&
             (record.source !== result.source ||
