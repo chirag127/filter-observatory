@@ -221,6 +221,14 @@ test('ordinary AdGuard reports use actual configuration and verified public imag
   assert.ok(!report.body.includes('attacker/elsewhere'));
 });
 
+test('retired catalog evidence cannot authorize attribution', () => {
+  const report = prepare(finding(), {
+    catalog: catalog.map((item) => ({ ...item, retired: true })),
+  });
+  assert.notEqual(report.state, 'ready');
+  assert.ok(report.reasons.includes('unknown-list:adguard:2'));
+});
+
 test('missing or false prerequisites remain specific deferred facts even with maximal model confidence', () => {
   for (const key of ['filtersCurrent', 'browserCurrent', 'productCurrent']) {
     for (const value of [undefined, false, 'true']) {

@@ -46,6 +46,19 @@ followed by one LF newline.
   Discovery alone does not authorize live browser/configuration changes, provider calls,
   or upstream submissions; follow the task's explicit live-operation scope.
 
+## Current catalog snapshots
+
+Catalog discovery is additive by default. An authenticated discovery request with
+`current: true` and no snapshot override opts into canonical current discovery.
+GitHub sources resolve HEAD once and read that immutable revision. Only complete,
+error-free canonical discoveries can retire missing records previously managed by
+that source's current snapshots. Older, partial, manual, custom and pinned imports
+retain evidence without reactivating or replacing managed current records.
+Retirement preserves payloads and content-addressed history in the records store;
+`catalog({ includeRetired: true })` reads retired entries. Default catalog queries
+and report attribution exclude retired entries. A newer current snapshot can
+reactivate a reappearing record. Existing unmanaged data is never silently retired.
+
 ## Commands
 
 Use the pinned Node release range in `package.json` and `companion/package.json`.

@@ -1049,7 +1049,30 @@ export async function discoverCatalog(source, options = {}) {
   const summaryConflicts = [];
   const issue = (code, message, extra = {}) =>
     sourceErrors.push({ source, code, message, ...extra });
-  const ref = options.ref ?? (typeof snapshot === 'string' ? snapshot : catalogPins[source]);
+  const currentSource =
+    options.current === true &&
+    source !== 'manual' &&
+    options.snapshot === undefined &&
+    options.ref === undefined &&
+    options.url === undefined &&
+    options.metadataBaseUrl === undefined &&
+    options.detailBaseUrl === undefined;
+  if (currentSource) snapshot = null;
+  let ref = options.ref ?? (typeof snapshot === 'string' ? snapshot : catalogPins[source]);
+  if (currentSource && ['ubo', 'adguard'].includes(source)) {
+    const repository = source === 'ubo' ? 'gorhill/uBlock' : 'AdguardTeam/FiltersRegistry';
+    const head = await reader.get(`https://api.github.com/repos/${repository}/commits/HEAD`, {
+      source,
+      stage: 'revision',
+    });
+    if (/^[a-f0-9]{40}$/.test(head?.value?.sha ?? '')) {
+      ref = head.value.sha;
+      snapshot = ref;
+    } else {
+      ref = null;
+      issue('invalid-current-revision', 'Current discovery requires an immutable commit.');
+    }
+  }
   const refPart =
     typeof ref === 'string' && ref.length <= 160 && !/[\s\u0000-\u001f\u007f]/.test(ref)
       ? encodeURIComponent(ref)
@@ -1304,7 +1327,16 @@ export async function discoverCatalog(source, options = {}) {
     concurrency,
     complete: enumerationComplete && result.errors.length === 0 && unresolved.length === 0,
   };
-  return { ...result, provenance: reader.provenance, unresolved };
+  return {
+    ...result,
+    provenance: reader.provenance,
+    unresolved,
+    ...(currentSource && result.counts.complete
+      ? {
+          currentSnapshot: { source, retrievedAt, snapshot, digest: sha256(canonical(raw)) },
+        }
+      : {}),
+  };
 }
 
 function lexicalFeed(body, contentType) {

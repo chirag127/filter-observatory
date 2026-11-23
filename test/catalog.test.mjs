@@ -24,6 +24,40 @@ const response = (body, status = 200, headers = {}) =>
 const feed = (urls, variants = []) => ({ id: 'manual:list:sample', downloadUrls: urls, variants });
 const sha256 = (value) => createHash('sha256').update(value).digest('hex');
 
+test('explicit current discovery pins a canonical revision and alone authorizes retirement', async () => {
+  const sha = 'a'.repeat(40);
+  const urls = [];
+  const fetchImpl = async (url) => {
+    urls.push(String(url));
+    return response(String(url).endsWith('/commits/HEAD') ? { sha } : {});
+  };
+  const current = await discoverCatalog(
+    'ubo',
+    network(fetchImpl, { current: true, retrievedAt: observedAt }),
+  );
+  assert.equal(current.counts.complete, true);
+  assert.equal(current.currentSnapshot.source, 'ubo');
+  assert.ok(urls[1].includes(`/${sha}/assets/assets.json`));
+  assert.equal(urls.length, 2);
+  for (const options of [
+    {},
+    { current: true, snapshot: sha },
+    { current: true, url: 'https://example.com/assets.json' },
+  ]) {
+    const result = await discoverCatalog(
+      'ubo',
+      network(async () => response({}), options),
+    );
+    assert.equal(result.currentSnapshot, undefined);
+  }
+  const failed = await discoverCatalog(
+    'ubo',
+    network(async () => response({}, 503), { current: true }),
+  );
+  assert.equal(failed.currentSnapshot, undefined);
+  assert.equal(failed.counts.complete, false);
+});
+
 test('FilterLists preserves native identities, original names, mirrors and declared relationships', async () => {
   const raw = await fixture('filterlists');
   raw.push({
@@ -599,6 +633,31 @@ test('explicit source revisions and custom URLs never inherit an unrelated defau
     ),
   );
   assert.deepEqual(custom.records[0].snapshot, { url, sha256: sha256(body) });
+});
+
+test('custom FilterLists hydration cannot authorize current retirement', async () => {
+  const urls = [];
+  const result = await discoverCatalog(
+    'filterlists',
+    network(
+      async (url) => {
+        urls.push(String(url));
+        return response(
+          urls.length === 1
+            ? [{ id: 1, name: 'One' }]
+            : {
+                id: 1,
+                name: 'One',
+                viewUrls: [{ url: 'https://example.com/list', segmentNumber: 1, primariness: 1 }],
+              },
+        );
+      },
+      { current: true, detailBaseUrl: 'https://custom.example.com/lists' },
+    ),
+  );
+  assert.equal(result.counts.complete, true);
+  assert.ok(urls[1].startsWith('https://custom.example.com/lists/'));
+  assert.equal(result.currentSnapshot, undefined);
 });
 
 test('an unsafe detail endpoint preserves the discovered catalog and accounts for each unresolved identity', async () => {

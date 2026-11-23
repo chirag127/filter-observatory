@@ -310,7 +310,7 @@ export function prepareReport(finding, { catalog = [], config = {}, existingIssu
   if (!listIds.length) defer('attribution-list-missing');
   for (const id of listIds) {
     const key = /^[A-Za-z0-9_:./-]{1,160}$/.test(string(id)) ? id : '(invalid-id)';
-    const record = catalog.find((item) => item.id === id);
+    const record = catalog.find((item) => item.id === id && item.retired !== true);
     if (!record) {
       defer(`unknown-list:${key}`);
       continue;

@@ -322,6 +322,7 @@ export function createHttpServer({
             async () => {
               const { discoverCatalog } = await import('./catalog.mjs');
               const result = await discoverCatalog(body.source, {
+                current: body.current === true,
                 snapshot: body.snapshot,
                 fetchImpl,
                 signal: lifetime.signal,
@@ -329,7 +330,7 @@ export function createHttpServer({
               store.saveCatalog(result);
               return { counts: result.counts, errors: result.errors };
             },
-            JSON.stringify(body.snapshot ?? null),
+            JSON.stringify({ snapshot: body.snapshot ?? null, current: body.current === true }),
           ),
         );
       }

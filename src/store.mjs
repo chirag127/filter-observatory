@@ -979,8 +979,58 @@ export function openStore(directory) {
         const upsert = db.prepare(
           'INSERT INTO catalog (id,payload,updated_at) VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,updated_at=excluded.updated_at',
         );
-        for (const record of result.records ?? [])
+        const snapshot = result.currentSnapshot;
+        const authoritative =
+          snapshot?.source === result.source &&
+          ['ubo', 'adguard', 'filterlists'].includes(result.source) &&
+          result.counts?.complete === true &&
+          !(result.errors ?? []).length &&
+          /^[a-f0-9]{64}$/.test(snapshot.digest ?? '') &&
+          Number.isFinite(Date.parse(snapshot.retrievedAt));
+        const scopeKey = `catalog-current:${result.source}`;
+        const previous = store.getRecord(scopeKey);
+        const newer =
+          authoritative &&
+          (!previous || Date.parse(snapshot.retrievedAt) > Date.parse(previous.retrievedAt));
+        const incoming = new Set((result.records ?? []).map((record) => record.id));
+        for (const record of result.records ?? []) {
+          const existing = db.prepare('SELECT payload FROM catalog WHERE id=?').get(record.id);
+          const membership = store.getRecord(`catalog-membership:${record.id}`);
+          store.setRecord(`catalog-history:${record.id}:${captureDigest(record)}`, record);
+          // Once managed by a current snapshot, historical and partial imports are evidence only.
+          if (membership && !newer) continue;
+          if (
+            newer &&
+            (record.source !== result.source ||
+              (membership && membership.source !== result.source) ||
+              (existing && decode(existing.payload).source !== result.source))
+          )
+            throw error('invalid_catalog_snapshot', 'Snapshot contains a foreign source');
+          if (existing)
+            store.setRecord(
+              `catalog-history:${record.id}:${captureDigest(decode(existing.payload))}`,
+              decode(existing.payload),
+            );
           upsert.run(record.id, JSON.stringify(record), now());
+          if (newer)
+            store.setRecord(`catalog-membership:${record.id}`, {
+              source: result.source,
+              retired: false,
+              snapshot,
+            });
+        }
+        if (newer) {
+          for (const row of db.prepare('SELECT id,payload FROM catalog').all()) {
+            const membership = store.getRecord(`catalog-membership:${row.id}`);
+            if (membership?.source === result.source && !incoming.has(row.id))
+              store.setRecord(`catalog-membership:${row.id}`, {
+                ...membership,
+                retired: true,
+                snapshot,
+              });
+          }
+          store.setRecord(scopeKey, snapshot);
+        }
         store.setRecord(`import:${result.source}`, {
           source: result.source,
           counts: result.counts,
@@ -990,11 +1040,18 @@ export function openStore(directory) {
         return (result.records ?? []).length;
       });
     },
-    catalog() {
+    catalog({ includeRetired = false } = {}) {
       return db
-        .prepare('SELECT payload,health FROM catalog ORDER BY id')
+        .prepare('SELECT id,payload,health FROM catalog ORDER BY id')
         .all()
-        .map((row) => ({ ...decode(row.payload), health: decode(row.health) }));
+        .filter(
+          (row) => includeRetired || !store.getRecord(`catalog-membership:${row.id}`)?.retired,
+        )
+        .map((row) => ({
+          ...decode(row.payload),
+          health: decode(row.health),
+          ...(store.getRecord(`catalog-membership:${row.id}`)?.retired ? { retired: true } : {}),
+        }));
     },
     saveHealth(id, health) {
       db.prepare('UPDATE catalog SET health=?,updated_at=? WHERE id=?').run(
@@ -1043,7 +1100,7 @@ export function openStore(directory) {
           captures: db.prepare('SELECT count(*) AS n FROM captures').get().n,
           findings: db.prepare('SELECT count(*) AS n FROM findings').get().n,
           reports: db.prepare('SELECT count(*) AS n FROM reports').get().n,
-          catalog: db.prepare('SELECT count(*) AS n FROM catalog').get().n,
+          catalog: store.catalog().length,
         },
       };
     },

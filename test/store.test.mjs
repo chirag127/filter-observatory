@@ -102,6 +102,69 @@ test('outbox fingerprint deduplication preserves a submitted receipt', (t) => {
   assert.equal(store.claimReport(), null);
 });
 
+test('current catalog retirement preserves history, source boundaries and reappearance', (t) => {
+  const f = fixture(t);
+  const record = (id, source = 'ubo') => ({ id, source, name: id });
+  const current = (records, day, source = 'ubo') => ({
+    source,
+    records,
+    errors: [],
+    counts: { complete: true },
+    currentSnapshot: { source, retrievedAt: `2026-11-${day}T00:00:00Z`, digest: 'a'.repeat(64) },
+  });
+  f.store.saveCatalog({ source: 'ubo', records: [record('historical')] });
+  f.store.saveCatalog(current([record('one'), record('two')], '20'));
+  f.store.saveCatalog(current([record('other', 'adguard')], '20', 'adguard'));
+  f.store.saveCatalog(current([record('two')], '21'));
+  assert.deepEqual(
+    f.store.catalog().map((item) => item.id),
+    ['historical', 'other', 'two'],
+  );
+  assert.equal(
+    f.store.catalog({ includeRetired: true }).find((item) => item.id === 'one').retired,
+    true,
+  );
+  assert.ok(f.store.listRecords('catalog-history:one:').records.length);
+  f.reopen();
+  for (const result of [
+    { source: 'ubo', records: [record('one')] },
+    { ...current([record('one')], '22'), counts: { complete: false } },
+    { ...current([record('one')], '22'), errors: [{ code: 'partial' }] },
+    current([record('one')], '19'),
+  ])
+    f.store.saveCatalog(result);
+  assert.equal(
+    f.store.catalog().some((item) => item.id === 'one'),
+    false,
+  );
+  assert.equal(
+    f.store.catalog().some((item) => item.id === 'two'),
+    true,
+  );
+  f.store.saveCatalog(current([record('one'), record('two')], '23'));
+  assert.equal(
+    f.store.catalog().some((item) => item.id === 'one'),
+    true,
+  );
+  assert.equal(f.store.summary().totals.catalog, 4);
+  f.store.saveCatalog(current([], '24'));
+  assert.deepEqual(
+    f.store.catalog().map((item) => item.id),
+    ['historical', 'other'],
+  );
+  assert.equal(f.store.catalog({ includeRetired: true }).length, 4);
+  const before = f.store.catalog({ includeRetired: true });
+  assert.throws(
+    () =>
+      f.store.saveCatalog(
+        current([record('new-record', 'adguard'), record('one', 'adguard')], '25', 'adguard'),
+      ),
+    { code: 'invalid_catalog_snapshot' },
+  );
+  assert.deepEqual(f.store.catalog({ includeRetired: true }), before);
+  assert.equal(f.store.listRecords('catalog-history:new-record:').records.length, 0);
+});
+
 test('absent finding IDs return no finding without binding undefined to SQLite', (t) => {
   const { store } = fixture(t);
   assert.equal(store.finding(), null);
