@@ -112,33 +112,46 @@ function place(parent, nodes) {
 
 async function api(path, body, owner = connection, { image = false, signal } = {}) {
   if (!current(owner)) throw obsolete();
-  const response = await fetch(`/api/${path}`, {
-    method: body === undefined ? 'GET' : 'POST',
-    headers: {
-      Authorization: `Bearer ${owner.token}`,
-      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.any([
-      owner.controller.signal,
-      AbortSignal.timeout(image ? 15000 : 30000),
-      ...(signal ? [signal] : []),
-    ]),
-  });
-  if (!current(owner)) throw obsolete();
-  if (image && response.ok) {
-    const blob = await response.blob();
-    if (!current(owner)) throw obsolete();
-    return blob;
+  // Chrome 106 supports controllers but not AbortSignal.any or AbortSignal.timeout.
+  const controller = new AbortController();
+  const sources = [owner.controller.signal, ...(signal ? [signal] : [])];
+  const abort = (event) => controller.abort(event.target.reason);
+  for (const source of sources) {
+    source.addEventListener('abort', abort, { once: true });
+    if (source.aborted) controller.abort(source.reason);
   }
-  const result = await response.json();
-  if (!current(owner)) throw obsolete();
-  if (!response.ok)
-    throw Object.assign(
-      new Error(result.error?.message || `Worker returned HTTP ${response.status}.`),
-      { status: response.status, code: result.error?.code },
-    );
-  return result;
+  const timer = setTimeout(
+    () => controller.abort(new DOMException('The request timed out.', 'TimeoutError')),
+    image ? 15000 : 30000,
+  );
+  try {
+    const response = await fetch(`/api/${path}`, {
+      method: body === undefined ? 'GET' : 'POST',
+      headers: {
+        Authorization: `Bearer ${owner.token}`,
+        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!current(owner)) throw obsolete();
+    if (image && response.ok) {
+      const blob = await response.blob();
+      if (!current(owner)) throw obsolete();
+      return blob;
+    }
+    const result = await response.json();
+    if (!current(owner)) throw obsolete();
+    if (!response.ok)
+      throw Object.assign(
+        new Error(result.error?.message || `Worker returned HTTP ${response.status}.`),
+        { status: response.status, code: result.error?.code },
+      );
+    return result;
+  } finally {
+    clearTimeout(timer);
+    for (const source of sources) source.removeEventListener('abort', abort);
+  }
 }
 function showError(error, owner) {
   if (!current(owner) || error.obsolete) return;

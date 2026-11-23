@@ -67,7 +67,9 @@ Markdownlint, PSScriptAnalyzer and PowerShell formatting alongside the pinned
 workspace ESLint and Prettier. Its full image covers every maintained language
 currently present, not every possible language or historical contribution artifact.
 CI checks only, never applies fixes or commits, and retains lint reports. CI also
-runs root and companion offline tests, compilation, and both browser builds.
+runs root and companion offline tests, compilation, and both browser builds on the
+minimum supported Node 22 and 24 releases and pinned Node 26 release. Markdown lint
+allows only the inline HTML elements required by the hire-me footer.
 
 With Docker's Linux daemon running, check all languages from the repository root:
 

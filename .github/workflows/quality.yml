@@ -25,11 +25,15 @@ jobs:
           if-no-files-found: warn
   quality:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22.22.2', '24.15.0', '26.13.0']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '26.13.0'
+          node-version: ${{ matrix.node }}
           cache: npm
           cache-dependency-path: |
             package-lock.json

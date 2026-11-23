@@ -98,8 +98,9 @@ export function fixture(t) {
     created = [],
     timers = new Map();
   let timerId = 0;
-  window.AbortSignal = AbortSignal;
-  window.AbortController = AbortController;
+  // Keep jsdom's browser controllers: unlike Node's, these lack static abort helpers.
+  window.AbortSignal.any = undefined;
+  window.AbortSignal.timeout = undefined;
   // Control only transport and elapsed app timers. Late replies deliberately ignore abort,
   // so generation isolation is checked even when cancellation loses the response race.
   window.fetch = (path, init = {}) => {

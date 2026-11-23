@@ -341,6 +341,34 @@ test('a failed restoration retains debt, refuses overwrite, and a fresh adapter 
   );
 });
 
+for (const enabled of [true, false]) {
+  test(`missing originally ${enabled ? 'enabled' : 'disabled'} extension retains recovery debt`, async () => {
+    const journal = memoryJournal();
+    const fixture = simulatedBrowser({
+      journal,
+      installed: extensions(true, enabled),
+      onCapture({ item, state }) {
+        if (item.context.condition === 'adguard-off') {
+          state.splice(
+            state.findIndex((extension) => extension.id === UBOL),
+            1,
+          );
+          throw new Error('Extension disappeared');
+        }
+      },
+    });
+    const result = await runComparison(fixture.adapter, URL, { journal });
+    assert.equal(result.restoration.state, 'failed');
+    assert.equal(journal.clears, 0);
+    const debt = await journal.read();
+    assert.ok(debt);
+    const recovery = await recoverComparison(fixture.adapter, journal);
+    assert.equal(recovery.state, 'failed');
+    assert.equal(journal.clears, 0);
+    assert.deepEqual(await journal.read(), debt);
+  });
+}
+
 test('restoration continues with the other blocker after one restore command fails', async () => {
   const journal = memoryJournal();
   let restoring = false;

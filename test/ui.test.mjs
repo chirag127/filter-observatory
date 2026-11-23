@@ -11,6 +11,30 @@ import {
   findDetail,
 } from './helpers/ui-fixtures.mjs';
 
+test('requests time out without static AbortSignal helpers and clear completed timers', async (t) => {
+  const h = fixture(t);
+  assert.equal(h.window.AbortSignal.any, undefined);
+  assert.equal(h.window.AbortSignal.timeout, undefined);
+  await connect(h);
+  assert.equal(
+    [...h.timers.values()].some((timer) => timer.ms === 30000),
+    false,
+  );
+  h.$('refresh').click();
+  const request = h.request('/api/state');
+  assert.equal(request.init.signal.aborted, false);
+  h.tick(30000);
+  assert.equal(request.init.signal.aborted, true);
+  assert.equal(request.init.signal.reason.name, 'TimeoutError');
+  request.fail(request.init.signal.reason);
+  await settle();
+  assert.match(h.$('message').textContent, /timed out/);
+  assert.equal(
+    [...h.timers.values()].some((timer) => timer.ms === 30000),
+    false,
+  );
+});
+
 test('reconnecting authenticates the new token while an old refresh is pending', async (t) => {
   const h = fixture(t);
   await connect(h, state({ captures: [capture()] }));

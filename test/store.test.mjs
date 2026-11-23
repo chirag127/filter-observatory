@@ -102,6 +102,22 @@ test('outbox fingerprint deduplication preserves a submitted receipt', (t) => {
   assert.equal(store.claimReport(), null);
 });
 
+test('identical ready drafts are revised and claimable while protected drafts stay unchanged', (t) => {
+  const { store } = fixture(t);
+  const prepared = {
+    id: 'identical-ready',
+    fingerprint: 'identical-ready-fingerprint',
+    state: 'ready',
+    reasons: [],
+    body: 'Ready evidence',
+  };
+  store.saveReport(prepared);
+  assert.deepEqual(store.reviseReport(prepared.id, prepared), { id: prepared.id, updated: true });
+  assert.equal(store.claimReport().id, prepared.id);
+  assert.deepEqual(store.reviseReport(prepared.id, prepared), { id: prepared.id, unchanged: true });
+  assert.equal(store.report(prepared.id).state, 'sending');
+});
+
 test('browser journal and cross-process lease survive reopen and require the owning token', async (t) => {
   const f = fixture(t);
   assert.equal(f.store.acquireLease('browser', 'worker-a'), true);
