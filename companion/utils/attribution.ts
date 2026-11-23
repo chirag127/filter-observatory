@@ -48,7 +48,8 @@ export class AttributionGuard {
   }
 
   assertUnchanged(): void {
-    if (this.changed) throw new Error('Capture target changed. Keep the page active and capture again.');
+    if (this.changed)
+      throw new Error('Capture target changed. Keep the page active and capture again.');
     if (!this.target) throw new Error('Capture target is not resolved.');
   }
 }

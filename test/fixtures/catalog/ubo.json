@@ -16,7 +16,10 @@
     "parent": "EasyList/uBO – Cookie Notices",
     "group": "annoyances",
     "off": true,
-    "contentURL": ["https://ublockorigin.github.io/uAssets/filters/annoyances-cookies.txt", "assets/ublock/cookies.txt"],
+    "contentURL": [
+      "https://ublockorigin.github.io/uAssets/filters/annoyances-cookies.txt",
+      "assets/ublock/cookies.txt"
+    ],
     "cdnURLs": ["https://ublockorigin.pages.dev/filters/annoyances-cookies.txt"],
     "patchURLs": ["https://ublockorigin.pages.dev/filters/"],
     "supportURL": "https://github.com/uBlockOrigin/uAssets"

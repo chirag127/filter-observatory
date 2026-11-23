@@ -12,13 +12,22 @@ import { pngBase64, sampleCapture } from './fixtures.ts';
 
 class Event<Args extends unknown[]> {
   listeners = new Set<(...args: Args) => unknown>();
-  addListener = (listener: (...args: Args) => unknown) => { this.listeners.add(listener); };
-  removeListener = (listener: (...args: Args) => unknown) => { this.listeners.delete(listener); };
-  async emit(...args: Args) { return Promise.all([...this.listeners].map((listener) => listener(...args))); }
+  addListener = (listener: (...args: Args) => unknown) => {
+    this.listeners.add(listener);
+  };
+  removeListener = (listener: (...args: Args) => unknown) => {
+    this.listeners.delete(listener);
+  };
+  async emit(...args: Args) {
+    return Promise.all([...this.listeners].map((listener) => listener(...args)));
+  }
 }
 
-function fixture(t: TestContext, queue = new CaptureQueue({ factory: new IDBFactory() }),
-  options: { fetchImpl?: typeof fetch; now?: () => number } = {}) {
+function fixture(
+  t: TestContext,
+  queue = new CaptureQueue({ factory: new IDBFactory() }),
+  options: { fetchImpl?: typeof fetch; now?: () => number } = {},
+) {
   const id = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
   const base = `chrome-extension://${id}`;
   const local: Record<string, unknown> = {};
@@ -31,44 +40,117 @@ function fixture(t: TestContext, queue = new CaptureQueue({ factory: new IDBFact
   const createdAlarms: Array<{ name: string; info: unknown }> = [];
   const api = {
     runtime: {
-      id, getURL: (path: string) => `${base}${path}`,
-      onMessage: message, onStartup: startup, onInstalled: installed,
-      sendMessage: async () => { trace.push('status-ui'); },
+      id,
+      getURL: (path: string) => `${base}${path}`,
+      onMessage: message,
+      onStartup: startup,
+      onInstalled: installed,
+      sendMessage: async () => {
+        trace.push('status-ui');
+      },
     },
-    commands: { onCommand: command, getAll: async () => [{ name: CAPTURE_COMMAND, shortcut: 'Ctrl+Shift+8' }] },
-    alarms: { onAlarm: alarm, create: async (name: string, info: unknown) => { createdAlarms.push({ name, info }); } },
-    storage: { local: {
-      get: async (key: string) => ({ [key]: structuredClone(local[key]) }),
-      set: async (values: Record<string, unknown>) => { Object.assign(local, structuredClone(values)); },
-      setAccessLevel: async () => {},
-    } },
+    commands: {
+      onCommand: command,
+      getAll: async () => [{ name: CAPTURE_COMMAND, shortcut: 'Ctrl+Shift+8' }],
+    },
+    alarms: {
+      onAlarm: alarm,
+      create: async (name: string, info: unknown) => {
+        createdAlarms.push({ name, info });
+      },
+    },
+    storage: {
+      local: {
+        get: async (key: string) => ({ [key]: structuredClone(local[key]) }),
+        set: async (values: Record<string, unknown>) => {
+          Object.assign(local, structuredClone(values));
+        },
+        setAccessLevel: async () => {},
+      },
+    },
     action: {
-      setBadgeText: async () => { trace.push('badge-ui'); },
-      setBadgeBackgroundColor: async () => {}, setTitle: async () => {},
+      setBadgeText: async () => {
+        trace.push('badge-ui');
+      },
+      setBadgeBackgroundColor: async () => {},
+      setTitle: async () => {},
     },
   } as unknown as WxtBrowser;
-  const tab: ObservedTab = { id: 4, windowId: 8, active: true, status: 'complete', url: 'https://example.org/' };
+  const tab: ObservedTab = {
+    id: 4,
+    windowId: 8,
+    active: true,
+    status: 'complete',
+    url: 'https://example.org/',
+  };
   const platform: CapturePlatform = {
-    subscribe() { trace.push('guards-armed'); return () => {}; },
-    resolveTarget: async () => tab, getTab: async () => tab, getActiveTab: async () => tab,
+    subscribe() {
+      trace.push('guards-armed');
+      return () => {};
+    },
+    resolveTarget: async () => tab,
+    getTab: async () => tab,
+    getActiveTab: async () => tab,
     isWindowFocused: async () => true,
-    observeDocument: async () => ({ url: tab.url!, title: 'Page', token: 'document-token', documentId: 'document-native',
-      revision: 0, ready: 'complete', visible: true }),
-    screenshot: async () => { trace.push('screenshot'); return `data:image/png;base64,${pngBase64}`; },
+    observeDocument: async () => ({
+      url: tab.url!,
+      title: 'Page',
+      token: 'document-token',
+      documentId: 'document-native',
+      revision: 0,
+      ready: 'complete',
+      visible: true,
+    }),
+    screenshot: async () => {
+      trace.push('screenshot');
+      return `data:image/png;base64,${pngBase64}`;
+    },
     decodePng: async () => ({ dataBase64: pngBase64, width: 1, height: 1 }),
     browserInfo: async () => ({ name: 'Chrome', version: '158.0' }),
   };
-  const background = startBackground(api, 'chrome', { queue, platform,
-    fetchImpl: options.fetchImpl ?? (async () => { throw new TypeError('Offline fixture'); }), now: options.now });
-  t.after(async () => { background.dispose(); await queue.close(); });
+  const background = startBackground(api, 'chrome', {
+    queue,
+    platform,
+    fetchImpl:
+      options.fetchImpl ??
+      (async () => {
+        throw new TypeError('Offline fixture');
+      }),
+    now: options.now,
+  });
+  t.after(async () => {
+    background.dispose();
+    await queue.close();
+  });
   async function request(body: unknown, page = 'popup'): Promise<UiReply | undefined> {
     let resolve!: (reply: UiReply | undefined) => void;
-    const reply = new Promise<UiReply | undefined>((done) => { resolve = done; });
-    const accepted = await message.emit(body, { id, url: `${base}/${page}.html`, frameId: 0 }, resolve);
+    const reply = new Promise<UiReply | undefined>((done) => {
+      resolve = done;
+    });
+    const accepted = await message.emit(
+      body,
+      { id, url: `${base}/${page}.html`, frameId: 0 },
+      resolve,
+    );
     if (!accepted.includes(true)) resolve(undefined);
     return reply;
   }
-  return { api, background, queue, tab, platform, trace, command, alarm, startup, installed, message, request, local, createdAlarms };
+  return {
+    api,
+    background,
+    queue,
+    tab,
+    platform,
+    trace,
+    command,
+    alarm,
+    startup,
+    installed,
+    message,
+    request,
+    local,
+    createdAlarms,
+  };
 }
 
 test('a named hotkey captures and commits before UI feedback; popup reports the actual assigned shortcut', async (t) => {
@@ -95,7 +177,10 @@ test('background capture does not wait for worker connectivity or queue-delivery
   const f = fixture(t);
   const shot = Promise.withResolvers<string>();
   const started = Promise.withResolvers<void>();
-  f.platform.screenshot = async () => { started.resolve(); return shot.promise; };
+  f.platform.screenshot = async () => {
+    started.resolve();
+    return shot.promise;
+  };
   const first = f.command.emit(CAPTURE_COMMAND, f.tab as Browser.tabs.Tab);
   await started.promise;
   await f.command.emit(CAPTURE_COMMAND, f.tab as Browser.tabs.Tab);
@@ -116,7 +201,11 @@ test('settings and alarm retry use the same durable queue, and status never retu
   assert.deepEqual(f.local[SETTINGS_KEY], settings);
   assert.deepEqual((await f.request({ type: 'settings:get' }, 'options'))?.settings, settings);
   await f.command.emit(CAPTURE_COMMAND, f.tab as Browser.tabs.Tab);
-  await f.alarm.emit({ name: DELIVERY_ALARM, scheduledTime: Date.now(), persistAcrossSessions: true });
+  await f.alarm.emit({
+    name: DELIVERY_ALARM,
+    scheduledTime: Date.now(),
+    persistAcrossSessions: true,
+  });
   const status = await f.request({ type: 'status' });
   assert.equal(status?.status?.queue.pending, 1);
   assert.equal(status?.status?.connection, 'offline');
@@ -131,7 +220,10 @@ test('a transient startup storage failure does not permanently disable status an
   class RecoveringQueue extends CaptureQueue {
     failOnce = true;
     override async summary() {
-      if (this.failOnce) { this.failOnce = false; throw new Error('Temporary IndexedDB failure'); }
+      if (this.failOnce) {
+        this.failOnce = false;
+        throw new Error('Temporary IndexedDB failure');
+      }
       return super.summary();
     }
   }
@@ -140,18 +232,27 @@ test('a transient startup storage failure does not permanently disable status an
   const reply = await f.request({ type: 'status' });
   assert.equal(reply?.ok, true);
   assert.equal(reply?.status?.queue.pending, 0);
-  const saved = await f.request({ type: 'settings:save', settings: { endpoint: 'http://127.0.0.1:4317', token: '' } }, 'options');
+  const saved = await f.request(
+    { type: 'settings:save', settings: { endpoint: 'http://127.0.0.1:4317', token: '' } },
+    'options',
+  );
   assert.equal(saved?.ok, true);
 });
 
 for (const activity of [
   { worker: { runId: 'comparison-running' }, journals: [] },
-  { worker: { runId: null }, journals: [{ name: 'browser:fixture', snapshot: { stage: 'restore-pending' } }] },
+  {
+    worker: { runId: null },
+    journals: [{ name: 'browser:fixture', snapshot: { stage: 'restore-pending' } }],
+  },
 ]) {
   test(`a ${activity.worker.runId ? 'running comparison' : 'pending restoration'} rejects the gesture before any screenshot`, async (t) => {
     const f = fixture(t, undefined, { fetchImpl: async () => Response.json(activity) });
     await f.background.ready;
-    f.local[SETTINGS_KEY] = { endpoint: 'http://127.0.0.1:4317', token: 'fixture-worker-token-only' };
+    f.local[SETTINGS_KEY] = {
+      endpoint: 'http://127.0.0.1:4317',
+      token: 'fixture-worker-token-only',
+    };
     f.trace.length = 0;
     await f.command.emit(CAPTURE_COMMAND, f.tab as Browser.tabs.Tab);
     const reply = await f.request({ type: 'status' });
@@ -164,10 +265,16 @@ for (const activity of [
 
 test('a comparison starting during capture discards its pixels instead of labeling them installed-state evidence', async (t) => {
   let running = false;
-  const f = fixture(t, undefined, { fetchImpl: async () => Response.json({ worker: { runId: running ? 'comparison-new' : null }, journals: [] }) });
+  const f = fixture(t, undefined, {
+    fetchImpl: async () =>
+      Response.json({ worker: { runId: running ? 'comparison-new' : null }, journals: [] }),
+  });
   await f.background.ready;
   f.local[SETTINGS_KEY] = { endpoint: 'http://127.0.0.1:4317', token: 'fixture-worker-token-only' };
-  f.platform.screenshot = async () => { running = true; return `data:image/png;base64,${pngBase64}`; };
+  f.platform.screenshot = async () => {
+    running = true;
+    return `data:image/png;base64,${pngBase64}`;
+  };
   await f.command.emit(CAPTURE_COMMAND, f.tab as Browser.tabs.Tab);
   const reply = await f.request({ type: 'status' });
   assert.equal(reply?.status?.capture.state, 'error');
@@ -177,10 +284,13 @@ test('a comparison starting during capture discards its pixels instead of labeli
 test('a known comparison block survives a later offline state without taking a delayed screenshot', async (t) => {
   let online = true;
   let now = 1000;
-  const f = fixture(t, undefined, { now: () => now, fetchImpl: async () => {
-    if (!online) throw new TypeError('Worker offline after profile mutation');
-    return Response.json({ worker: { runId: 'comparison-running' }, journals: [] });
-  } });
+  const f = fixture(t, undefined, {
+    now: () => now,
+    fetchImpl: async () => {
+      if (!online) throw new TypeError('Worker offline after profile mutation');
+      return Response.json({ worker: { runId: 'comparison-running' }, journals: [] });
+    },
+  });
   await f.background.ready;
   f.local[SETTINGS_KEY] = { endpoint: 'http://127.0.0.1:4317', token: 'fixture-worker-token-only' };
   await f.command.emit(CAPTURE_COMMAND, f.tab as Browser.tabs.Tab);
@@ -199,21 +309,50 @@ for (const action of ['retry', 'settings:save'] as const) {
     const started = Promise.withResolvers<void>();
     const oldResponse = Promise.withResolvers<Response>();
     const sent: Array<{ endpoint: string; body: string }> = [];
-    const f = fixture(t, queue, { now: () => now, fetchImpl: async (url, init) => {
-      if (init?.method !== 'POST') return Response.json({ ok: true, version: '0.1.0', worker: { runId: null }, journals: [], runs: [] });
-      sent.push({ endpoint: String(url), body: String(init.body) });
-      if (sent.length === 1) { started.resolve(); return oldResponse.promise; }
-      return Response.json({ id: sampleCapture().id, state: 'stored', duplicate: false }, { status: 201 });
-    } });
+    const f = fixture(t, queue, {
+      now: () => now,
+      fetchImpl: async (url, init) => {
+        if (init?.method !== 'POST')
+          return Response.json({
+            ok: true,
+            version: '0.1.0',
+            worker: { runId: null },
+            journals: [],
+            runs: [],
+          });
+        sent.push({ endpoint: String(url), body: String(init.body) });
+        if (sent.length === 1) {
+          started.resolve();
+          return oldResponse.promise;
+        }
+        return Response.json(
+          { id: sampleCapture().id, state: 'stored', duplicate: false },
+          { status: 201 },
+        );
+      },
+    });
     await f.background.ready;
-    f.local[SETTINGS_KEY] = { endpoint: 'http://127.0.0.1:4317', token: 'fixture-worker-token-only' };
+    f.local[SETTINGS_KEY] = {
+      endpoint: 'http://127.0.0.1:4317',
+      token: 'fixture-worker-token-only',
+    };
     await queue.enqueue(sampleCapture());
-    const delivery = f.alarm.emit({ name: DELIVERY_ALARM, scheduledTime: now, persistAcrossSessions: true });
+    const delivery = f.alarm.emit({
+      name: DELIVERY_ALARM,
+      scheduledTime: now,
+      persistAcrossSessions: true,
+    });
     await started.promise;
     now += 1000;
-    const reset = f.request(action === 'retry' ? { type: 'retry' } : {
-      type: 'settings:save', settings: { endpoint: 'http://127.0.0.1:4318', token: 'fixture-updated-worker-token' },
-    }, action === 'retry' ? 'popup' : 'options');
+    const reset = f.request(
+      action === 'retry'
+        ? { type: 'retry' }
+        : {
+            type: 'settings:save',
+            settings: { endpoint: 'http://127.0.0.1:4318', token: 'fixture-updated-worker-token' },
+          },
+      action === 'retry' ? 'popup' : 'options',
+    );
     // A public status reply lets the reset handler reach its first storage operation.
     await f.request({ type: 'status' });
     oldResponse.resolve(new Response(null, { status: 409 }));
@@ -223,7 +362,10 @@ for (const action of ['retry', 'settings:save'] as const) {
     assert.equal((await queue.summary()).pending, 0);
     assert.equal(sent.length, 2);
     assert.equal(sent[0]?.body, sent[1]?.body);
-    assert.equal(sent[1]?.endpoint, `http://127.0.0.1:${action === 'retry' ? 4317 : 4318}/api/captures`);
+    assert.equal(
+      sent[1]?.endpoint,
+      `http://127.0.0.1:${action === 'retry' ? 4317 : 4318}/api/captures`,
+    );
   });
 }
 
@@ -231,18 +373,36 @@ test('changing connection during capture rejects evidence from mixed worker obse
   const shot = Promise.withResolvers<string>();
   const started = Promise.withResolvers<void>();
   const checked: string[] = [];
-  const f = fixture(t, undefined, { fetchImpl: async (url) => {
-    checked.push(String(url));
-    return Response.json({ ok: true, version: '0.1.0', worker: { runId: null }, journals: [], runs: [] });
-  } });
+  const f = fixture(t, undefined, {
+    fetchImpl: async (url) => {
+      checked.push(String(url));
+      return Response.json({
+        ok: true,
+        version: '0.1.0',
+        worker: { runId: null },
+        journals: [],
+        runs: [],
+      });
+    },
+  });
   await f.background.ready;
   f.local[SETTINGS_KEY] = { endpoint: 'http://127.0.0.1:4317', token: 'fixture-worker-token-only' };
-  f.platform.screenshot = async () => { started.resolve(); return shot.promise; };
+  f.platform.screenshot = async () => {
+    started.resolve();
+    return shot.promise;
+  };
   const capture = f.command.emit(CAPTURE_COMMAND, f.tab as Browser.tabs.Tab);
   await started.promise;
-  const saved = await f.request({ type: 'settings:save', settings: {
-    endpoint: 'http://127.0.0.1:4318', token: 'fixture-updated-worker-token',
-  } }, 'options');
+  const saved = await f.request(
+    {
+      type: 'settings:save',
+      settings: {
+        endpoint: 'http://127.0.0.1:4318',
+        token: 'fixture-updated-worker-token',
+      },
+    },
+    'options',
+  );
   assert.equal(saved?.ok, true);
   shot.resolve(`data:image/png;base64,${pngBase64}`);
   await capture;
@@ -261,8 +421,11 @@ test('stalled error persistence neither holds the capture gate nor overwrites a 
     override async recordCaptureError(message: string, at?: string, signal?: AbortSignal) {
       recording.resolve();
       await resume.promise;
-      try { await super.recordCaptureError(message, at, signal); }
-      finally { recorded.resolve(); }
+      try {
+        await super.recordCaptureError(message, at, signal);
+      } finally {
+        recorded.resolve();
+      }
     }
   }
   let now = 1000;
@@ -270,7 +433,9 @@ test('stalled error persistence neither holds the capture gate nor overwrites a 
   const f = fixture(t, queue, { now: () => now });
   await f.background.ready;
   const screenshot = f.platform.screenshot;
-  f.platform.screenshot = async () => { throw new Error('Viewport unavailable'); };
+  f.platform.screenshot = async () => {
+    throw new Error('Viewport unavailable');
+  };
   const first = f.command.emit(CAPTURE_COMMAND, f.tab as Browser.tabs.Tab);
   await recording.promise;
   try {

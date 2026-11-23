@@ -4,11 +4,15 @@ export const MAX_IMAGE_PIXELS = 24_000_000;
 type DecodedImage = { width: number; height: number; close(): void };
 type ImageDecoder = (blob: Blob) => Promise<DecodedImage>;
 
-export async function decodeScreenshot(dataUrl: string,
-  decode: ImageDecoder = (blob) => createImageBitmap(blob)):
-  Promise<{ dataBase64: string; width: number; height: number }> {
+export async function decodeScreenshot(
+  dataUrl: string,
+  decode: ImageDecoder = (blob) => createImageBitmap(blob),
+): Promise<{ dataBase64: string; width: number; height: number }> {
   const prefix = 'data:image/png;base64,';
-  if (!dataUrl.startsWith(prefix) || dataUrl.length > prefix.length + Math.ceil(MAX_IMAGE_BYTES / 3) * 4) {
+  if (
+    !dataUrl.startsWith(prefix) ||
+    dataUrl.length > prefix.length + Math.ceil(MAX_IMAGE_BYTES / 3) * 4
+  ) {
     throw new Error('Screenshot is not a PNG or exceeds the 8 MiB image limit.');
   }
   const dataBase64 = dataUrl.slice(prefix.length);
@@ -16,8 +20,13 @@ export async function decodeScreenshot(dataUrl: string,
     throw new Error('Screenshot encoding is invalid.');
   }
   let raw: string;
-  try { raw = atob(dataBase64); } catch { throw new Error('Screenshot encoding is invalid.'); }
-  if (raw.length > MAX_IMAGE_BYTES || btoa(raw) !== dataBase64) throw new Error('Screenshot encoding is invalid.');
+  try {
+    raw = atob(dataBase64);
+  } catch {
+    throw new Error('Screenshot encoding is invalid.');
+  }
+  if (raw.length > MAX_IMAGE_BYTES || btoa(raw) !== dataBase64)
+    throw new Error('Screenshot encoding is invalid.');
   const bytes = Uint8Array.from(raw, (char) => char.charCodeAt(0));
   if (bytes.length < 33 || [137, 80, 78, 71, 13, 10, 26, 10].some((byte, i) => bytes[i] !== byte)) {
     throw new Error('Screenshot does not contain a PNG image.');
@@ -29,7 +38,9 @@ export async function decodeScreenshot(dataUrl: string,
   const width = header.getUint32(16);
   const height = header.getUint32(20);
   if (!width || !height || width > 32768 || height > 32768 || width * height > MAX_IMAGE_PIXELS) {
-    throw new Error('Screenshot exceeds the 24 megapixel image limit. Reduce the viewport and capture again.');
+    throw new Error(
+      'Screenshot exceeds the 24 megapixel image limit. Reduce the viewport and capture again.',
+    );
   }
   let image: DecodedImage | undefined;
   try {

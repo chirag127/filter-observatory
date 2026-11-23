@@ -6,7 +6,8 @@ import { WorkerTransport, retryAfter } from '../utils/transport.ts';
 import { sampleCapture } from './fixtures.ts';
 
 const settings = { endpoint: 'http://127.0.0.1:4317', token: 'offline-worker-token-fixture' };
-const acknowledgement = (id: string, duplicate = false) => Response.json({ id, state: 'queued', duplicate }, { status: duplicate ? 200 : 201 });
+const acknowledgement = (id: string, duplicate = false) =>
+  Response.json({ id, state: 'queued', duplicate }, { status: duplicate ? 200 : 201 });
 
 test('lost acknowledgement retries identical persisted bytes and ID after background restart', async () => {
   const factory = new IDBFactory();
@@ -15,7 +16,8 @@ test('lost acknowledgement retries identical persisted bytes and ID after backgr
   const original = sampleCapture();
   await queue.enqueue(original);
   const acceptedBodies: string[] = [];
-  const first = new WorkerTransport(queue, async () => settings, { now: () => now,
+  const first = new WorkerTransport(queue, async () => settings, {
+    now: () => now,
     fetchImpl: async (url, init) => {
       assert.equal(url, `${settings.endpoint}/api/captures`);
       assert.equal(init?.method, 'POST');
@@ -26,16 +28,19 @@ test('lost acknowledgement retries identical persisted bytes and ID after backgr
       assert.equal(init?.referrerPolicy, 'no-referrer');
       acceptedBodies.push(String(init?.body));
       throw new TypeError('Connection lost after the worker committed the capture');
-    } });
+    },
+  });
   assert.equal((await first.drain())?.connection, 'offline');
   await queue.close();
   now += 1000;
   const reopened = new CaptureQueue({ factory, now: () => now });
-  const second = new WorkerTransport(reopened, async () => settings, { now: () => now,
+  const second = new WorkerTransport(reopened, async () => settings, {
+    now: () => now,
     fetchImpl: async (_url, init) => {
       acceptedBodies.push(String(init?.body));
       return acknowledgement(original.id, true);
-    } });
+    },
+  });
   assert.equal((await second.drain())?.connection, 'online');
   assert.deepEqual(acceptedBodies, [JSON.stringify(original), JSON.stringify(original)]);
   assert.equal((await reopened.summary()).pending, 0);
@@ -52,7 +57,9 @@ for (const [status, body] of [
   test(`HTTP ${status} without an exact durable acknowledgement retains the capture (${JSON.stringify(body.state)})`, async () => {
     const queue = new CaptureQueue({ factory: new IDBFactory() });
     await queue.enqueue(sampleCapture());
-    const transport = new WorkerTransport(queue, async () => settings, { fetchImpl: async () => Response.json(body, { status }) });
+    const transport = new WorkerTransport(queue, async () => settings, {
+      fetchImpl: async () => Response.json(body, { status }),
+    });
     assert.equal((await transport.drain())?.connection, 'error');
     assert.equal((await queue.read(sampleCapture().id))?.body, JSON.stringify(sampleCapture()));
     assert.equal(await queue.lastDelivery(), undefined);
@@ -83,8 +90,10 @@ test('worker Retry-After pauses every queued capture across reopen and manual re
   const queue = new CaptureQueue({ factory, now: () => now });
   await queue.enqueue(sampleCapture());
   await queue.enqueue(sampleCapture('second-capture-123'));
-  const transport = new WorkerTransport(queue, async () => settings, { now: () => now,
-    fetchImpl: async () => new Response(null, { status: 429, headers: { 'Retry-After': '120' } }) });
+  const transport = new WorkerTransport(queue, async () => settings, {
+    now: () => now,
+    fetchImpl: async () => new Response(null, { status: 429, headers: { 'Retry-After': '120' } }),
+  });
   assert.equal((await transport.drain())?.connection, 'error');
   await queue.close();
   now = 120_000;
@@ -100,9 +109,16 @@ test('concurrent drain triggers share one dispatch and a missing token does not 
   await queue.enqueue(sampleCapture());
   let configured = false;
   let calls = 0;
-  const transport = new WorkerTransport(queue, async () => ({ ...settings, token: configured ? settings.token : '' }), {
-    fetchImpl: async () => { calls += 1; return acknowledgement(sampleCapture().id); },
-  });
+  const transport = new WorkerTransport(
+    queue,
+    async () => ({ ...settings, token: configured ? settings.token : '' }),
+    {
+      fetchImpl: async () => {
+        calls += 1;
+        return acknowledgement(sampleCapture().id);
+      },
+    },
+  );
   assert.equal((await transport.drain())?.connection, 'unconfigured');
   assert.equal((await queue.read(sampleCapture().id))?.attempts, 0);
   configured = true;
@@ -116,7 +132,9 @@ test('oversized or malformed successful response cannot remove the durable paylo
   for (const body of ['invalid json', `{"padding":"${'x'.repeat(17000)}"}`]) {
     const queue = new CaptureQueue({ factory: new IDBFactory() });
     await queue.enqueue(sampleCapture());
-    const transport = new WorkerTransport(queue, async () => settings, { fetchImpl: async () => new Response(body, { status: 201 }) });
+    const transport = new WorkerTransport(queue, async () => settings, {
+      fetchImpl: async () => new Response(body, { status: 201 }),
+    });
     assert.equal((await transport.drain())?.connection, 'error');
     assert.equal((await queue.summary()).pending, 1);
     await queue.close();
@@ -126,27 +144,40 @@ test('oversized or malformed successful response cannot remove the durable paylo
 test('health status distinguishes unavailable worker, invalid response, rejected token, and actual health', async () => {
   const queue = new CaptureQueue({ factory: new IDBFactory() });
   for (const [response, expected] of [
-    [Response.json({}), 'error'], [Response.json({ ok: false, version: '0.1.0' }), 'error'],
+    [Response.json({}), 'error'],
+    [Response.json({ ok: false, version: '0.1.0' }), 'error'],
     [new Response('unauthorized', { status: 401 }), 'unauthorized'],
     [Response.json({ ok: true, version: '0.1.0' }), 'online'],
   ] as const) {
-    const transport = new WorkerTransport(queue, async () => settings, { fetchImpl: async (url, init) => {
-      assert.equal(url, `${settings.endpoint}/api/health`);
-      assert.equal(init?.method, 'GET');
-      return response;
-    } });
+    const transport = new WorkerTransport(queue, async () => settings, {
+      fetchImpl: async (url, init) => {
+        assert.equal(url, `${settings.endpoint}/api/health`);
+        assert.equal(init?.method, 'GET');
+        return response;
+      },
+    });
     assert.equal((await transport.check()).connection, expected);
   }
-  const offline = new WorkerTransport(queue, async () => settings, { fetchImpl: async () => { throw new TypeError('offline'); } });
+  const offline = new WorkerTransport(queue, async () => settings, {
+    fetchImpl: async () => {
+      throw new TypeError('offline');
+    },
+  });
   assert.equal((await offline.check()).connection, 'offline');
   await queue.close();
 });
 
 test('worker endpoint is validated before any authenticated request', async () => {
   const queue = new CaptureQueue({ factory: new IDBFactory() });
-  const transport = new WorkerTransport(queue, async () => ({ ...settings, endpoint: 'https://remote.example' }), {
-    fetchImpl: async () => { assert.fail('Token must not be sent to a non-loopback endpoint'); },
-  });
+  const transport = new WorkerTransport(
+    queue,
+    async () => ({ ...settings, endpoint: 'https://remote.example' }),
+    {
+      fetchImpl: async () => {
+        assert.fail('Token must not be sent to a non-loopback endpoint');
+      },
+    },
+  );
   await assert.rejects(transport.check(), /http/);
   await queue.close();
 });
@@ -166,8 +197,10 @@ test('Retry-After never shortens a valid deadline longer than a day', async () =
   const factory = new IDBFactory();
   const queue = new CaptureQueue({ factory, now: () => now });
   await queue.enqueue(sampleCapture());
-  const transport = new WorkerTransport(queue, async () => settings, { now: () => now,
-    fetchImpl: async () => new Response(null, { status: 429, headers: { 'Retry-After': '172800' } }),
+  const transport = new WorkerTransport(queue, async () => settings, {
+    now: () => now,
+    fetchImpl: async () =>
+      new Response(null, { status: 429, headers: { 'Retry-After': '172800' } }),
   });
   await transport.drain();
   await queue.close();
@@ -182,8 +215,10 @@ test('Retry-After never shortens a valid deadline longer than a day', async () =
 test('an unrepresentable Retry-After retains evidence without an early automatic retry', async () => {
   const queue = new CaptureQueue({ factory: new IDBFactory(), now: () => 1000 });
   await queue.enqueue(sampleCapture());
-  const transport = new WorkerTransport(queue, async () => settings, { now: () => 1000,
-    fetchImpl: async () => new Response(null, { status: 429, headers: { 'Retry-After': '9'.repeat(50) } }),
+  const transport = new WorkerTransport(queue, async () => settings, {
+    now: () => 1000,
+    fetchImpl: async () =>
+      new Response(null, { status: 429, headers: { 'Retry-After': '9'.repeat(50) } }),
   });
   await transport.drain();
   await queue.retryAll();
@@ -199,7 +234,8 @@ test('HTTP 503 Retry-After survives reopen and manual retry without an early dis
   const factory = new IDBFactory();
   const queue = new CaptureQueue({ factory, now: () => 1000 });
   await queue.enqueue(sampleCapture());
-  const transport = new WorkerTransport(queue, async () => settings, { now: () => 1000,
+  const transport = new WorkerTransport(queue, async () => settings, {
+    now: () => 1000,
     fetchImpl: async () => new Response(null, { status: 503, headers: { 'Retry-After': '120' } }),
   });
   const result = await transport.drain();
@@ -211,5 +247,7 @@ test('HTTP 503 Retry-After survives reopen and manual retry without an early dis
     assert.equal(await reopened.claimNext(), undefined);
     assert.equal((await reopened.summary()).nextRetryAt, new Date(121_000).toISOString());
     assert.ok(await reopened.claimNext(121_000));
-  } finally { await reopened.close(); }
+  } finally {
+    await reopened.close();
+  }
 });

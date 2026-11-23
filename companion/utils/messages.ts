@@ -1,9 +1,20 @@
 import type { UiRequest } from './contracts.ts';
 
-export function permittedUiRequest(message: unknown, sender: { id?: string; url?: string; frameId?: number },
-  extensionId: string, popupUrl: string, optionsUrl: string): message is UiRequest {
-  if (sender.id !== extensionId || (sender.frameId !== undefined && sender.frameId !== 0) ||
-      ![popupUrl, optionsUrl].includes(sender.url ?? '') || !message || typeof message !== 'object' || Array.isArray(message)) {
+export function permittedUiRequest(
+  message: unknown,
+  sender: { id?: string; url?: string; frameId?: number },
+  extensionId: string,
+  popupUrl: string,
+  optionsUrl: string,
+): message is UiRequest {
+  if (
+    sender.id !== extensionId ||
+    (sender.frameId !== undefined && sender.frameId !== 0) ||
+    ![popupUrl, optionsUrl].includes(sender.url ?? '') ||
+    !message ||
+    typeof message !== 'object' ||
+    Array.isArray(message)
+  ) {
     return false;
   }
   const value = message as Record<string, unknown>;

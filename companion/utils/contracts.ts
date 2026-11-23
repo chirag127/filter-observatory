@@ -28,7 +28,8 @@ export interface ConnectionSettings {
   token: string;
 }
 
-export type ConnectionState = 'unconfigured' | 'checking' | 'online' | 'offline' | 'unauthorized' | 'error';
+export type ConnectionState =
+  'unconfigured' | 'checking' | 'online' | 'offline' | 'unauthorized' | 'error';
 
 export interface QueueSummary {
   pending: number;

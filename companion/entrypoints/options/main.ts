@@ -8,9 +8,17 @@ export async function main(): Promise<MountedUi> {
   if (!root) throw new Error('The options root is missing.');
   const request = (message: UiRequest): Promise<UiReply> => browser.runtime.sendMessage(message);
   const ui = mountOptions(root, request);
-  const refresh = () => { void ui.refresh(); };
+  const refresh = () => {
+    void ui.refresh();
+  };
   const changed = (message: unknown) => {
-    if (message && typeof message === 'object' && 'type' in message && message.type === 'status:changed') refresh();
+    if (
+      message &&
+      typeof message === 'object' &&
+      'type' in message &&
+      message.type === 'status:changed'
+    )
+      refresh();
   };
   browser.runtime.onMessage.addListener(changed);
   window.addEventListener('focus', refresh);

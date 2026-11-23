@@ -15,11 +15,25 @@ export default defineConfig({
     },
     ...(browser === 'chrome'
       ? { minimum_chrome_version: '106' }
-      : { browser_specific_settings: { gecko: { id: 'filter-observatory@chirag127.github.io', strict_min_version: '127.0' } } }),
+      : {
+          browser_specific_settings: {
+            gecko: { id: 'filter-observatory@chirag127.github.io', strict_min_version: '127.0' },
+          },
+        }),
   }),
   zip: {
-    includeSources: ['entrypoints/**', 'utils/**', 'components/**', 'assets/**', 'public/**',
-      'wxt.config.ts', 'tsconfig.json', 'package.json', 'package-lock.json', 'README.md'],
+    includeSources: [
+      'entrypoints/**',
+      'utils/**',
+      'components/**',
+      'assets/**',
+      'public/**',
+      'wxt.config.ts',
+      'tsconfig.json',
+      'package.json',
+      'package-lock.json',
+      'README.md',
+    ],
     excludeSources: ['test-results/**', '**/*.private.json', '**/.env*'],
   },
 });

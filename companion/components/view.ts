@@ -103,7 +103,12 @@ export function createStatusView(document: Document, mode: 'popup' | 'options') 
     row.append(element(document, 'dt', '', label), field('dd', name, '—'));
     list.append(row);
   }
-  const stale = element(document, 'p', 'stale-notice', 'Showing the last received status. Refresh to try again.');
+  const stale = element(
+    document,
+    'p',
+    'stale-notice',
+    'Showing the last received status. Refresh to try again.',
+  );
   stale.hidden = true;
   container.append(stale);
 
@@ -135,7 +140,12 @@ export function createStatusView(document: Document, mode: 'popup' | 'options') 
   detail(queue, 'Stored', 'bytes');
   const queueError = field('p', 'queue-error', '', 'inline-error');
   queueError.hidden = true;
-  const blockedHelp = field('p', 'blocked-help', 'Blocked captures are retained locally. Review the delivery error.', 'detail');
+  const blockedHelp = field(
+    'p',
+    'blocked-help',
+    'Blocked captures are retained locally. Review the delivery error.',
+    'detail',
+  );
   blockedHelp.hidden = true;
   const retryTime = field('p', 'next-retry', '', 'timestamp');
   retryTime.hidden = true;
@@ -152,7 +162,10 @@ export function createStatusView(document: Document, mode: 'popup' | 'options') 
   detail(metadataList, 'Oldest queued capture', 'oldest-at');
   detail(metadataList, 'Last receipt ID', 'delivery-id');
   metadata.append(element(document, 'summary', '', 'Delivery details'), metadataList);
-  delivery.append(metadata, element(document, 'p', 'footnote', 'Worker delivery does not confirm analysis or a report.'));
+  delivery.append(
+    metadata,
+    element(document, 'p', 'footnote', 'Worker delivery does not confirm analysis or a report.'),
+  );
 
   function set(name: string, value: string) {
     fields[name]!.textContent = value;
@@ -165,20 +178,27 @@ export function createStatusView(document: Document, mode: 'popup' | 'options') 
   }
   return {
     element: container,
-    setBusy(busy: boolean) { container.setAttribute('aria-busy', String(busy)); },
-    setStale(value: boolean) { stale.hidden = !value; },
+    setBusy(busy: boolean) {
+      container.setAttribute('aria-busy', String(busy));
+    },
+    setStale(value: boolean) {
+      stale.hidden = !value;
+    },
     update(status: CompanionStatus) {
       stale.hidden = true;
       const assigned = status.shortcut.trim();
       set('shortcut', assigned || 'No shortcut assigned');
       fields.shortcut!.dataset.assigned = String(Boolean(assigned));
-      set('shortcut-guide', assigned
-        ? mode === 'popup'
-          ? 'Close this popup, then use this shortcut on the page. The screenshot is taken before any capture UI opens.'
-          : 'Return to the page and use this shortcut. The screenshot is taken before any capture UI opens.'
-        : status.browser === 'firefox'
-          ? 'In Firefox, open Add-ons and themes, then Manage extension shortcuts. Assign “Capture this viewport for Filter Observatory”.'
-          : 'Open chrome://extensions/shortcuts and assign “Capture this viewport for Filter Observatory”. Chrome on Windows suggests Ctrl+Q.');
+      set(
+        'shortcut-guide',
+        assigned
+          ? mode === 'popup'
+            ? 'Close this popup, then use this shortcut on the page. The screenshot is taken before any capture UI opens.'
+            : 'Return to the page and use this shortcut. The screenshot is taken before any capture UI opens.'
+          : status.browser === 'firefox'
+            ? 'In Firefox, open Add-ons and themes, then Manage extension shortcuts. Assign “Capture this viewport for Filter Observatory”.'
+            : 'Open chrome://extensions/shortcuts and assign “Capture this viewport for Filter Observatory”. Chrome on Windows suggests Ctrl+Q.',
+      );
       set('connection', connectionLabels[status.connection] ?? 'Unknown connection state');
       fields.connection!.dataset.state = status.connection;
       set('connection-message', status.connectionMessage);
@@ -187,21 +207,35 @@ export function createStatusView(document: Document, mode: 'popup' | 'options') 
       set('capture-state', captureLabels[status.capture.state] ?? 'Unknown capture state');
       fields['capture-state']!.dataset.state = status.capture.state;
       set('capture-message', status.capture.message);
-      dated('capture-at', status.capture.state === 'error' ? 'Failed: '
-        : status.capture.state === 'saved' ? 'Saved: '
-          : status.capture.state === 'capturing' ? 'Started: ' : 'Updated: ', status.capture.at);
+      dated(
+        'capture-at',
+        status.capture.state === 'error'
+          ? 'Failed: '
+          : status.capture.state === 'saved'
+            ? 'Saved: '
+            : status.capture.state === 'capturing'
+              ? 'Started: '
+              : 'Updated: ',
+        status.capture.at,
+      );
       set('pending', String(status.queue.pending));
       set('blocked', String(status.queue.blocked));
       set('bytes', bytes(status.queue.bytes));
-      set('queue-empty', status.queue.pending === 0 && status.queue.blocked === 0
-        ? 'No captures waiting for delivery.'
-        : 'Queued evidence remains on this device until the worker acknowledges it.');
+      set(
+        'queue-empty',
+        status.queue.pending === 0 && status.queue.blocked === 0
+          ? 'No captures waiting for delivery.'
+          : 'Queued evidence remains on this device until the worker acknowledges it.',
+      );
       set('queue-error', status.queue.lastError ?? '');
       queueError.hidden = !status.queue.lastError;
       blockedHelp.hidden = status.queue.blocked === 0;
       dated('next-retry', 'Next delivery retry: ', status.queue.nextRetryAt);
       if (status.queue.retryPaused) {
-        set('next-retry', 'Automatic delivery is paused by an unsupported worker retry deadline. Evidence stays on this device.');
+        set(
+          'next-retry',
+          'Automatic delivery is paused by an unsupported worker retry deadline. Evidence stays on this device.',
+        );
         retryTime.hidden = false;
       }
       dated('oldest-at', '', status.queue.oldestAt);

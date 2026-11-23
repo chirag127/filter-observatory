@@ -41,8 +41,12 @@ test('only an exact acknowledged capture is removed and its receipt is durable',
   const queue = new CaptureQueue({ factory });
   const capture = sampleCapture();
   await queue.enqueue(capture);
-  for (const bad of [{ id: 'other-id', state: 'stored', duplicate: false }, { id: capture.id, state: 'done', duplicate: false },
-    { id: capture.id, state: ['stored'], duplicate: false }, { id: capture.id, state: 'stored' }]) {
+  for (const bad of [
+    { id: 'other-id', state: 'stored', duplicate: false },
+    { id: capture.id, state: 'done', duplicate: false },
+    { id: capture.id, state: ['stored'], duplicate: false },
+    { id: capture.id, state: 'stored' },
+  ]) {
     await assert.rejects(queue.acknowledge(capture.id, bad), /acknowledgement/);
     assert.equal((await queue.read(capture.id))?.body, JSON.stringify(capture));
   }
@@ -127,17 +131,29 @@ test('cancelling after a successful payload write aborts the whole capture trans
   const abort = new AbortController();
   const originalAdd = IDBObjectStore.prototype.add;
   let payloadWritten = false;
-  t.mock.method(IDBObjectStore.prototype, 'add', function (this: IDBObjectStore,
-    ...args: Parameters<IDBObjectStore['add']>) {
-    const request = originalAdd.apply(this, args);
-    if (this.name === 'payloads') request.addEventListener('success', () => {
-      payloadWritten = true;
-      abort.abort(new Error('Capture cancelled before commit'));
-    }, { once: true });
-    return request;
-  });
+  t.mock.method(
+    IDBObjectStore.prototype,
+    'add',
+    function (this: IDBObjectStore, ...args: Parameters<IDBObjectStore['add']>) {
+      const request = originalAdd.apply(this, args);
+      if (this.name === 'payloads')
+        request.addEventListener(
+          'success',
+          () => {
+            payloadWritten = true;
+            abort.abort(new Error('Capture cancelled before commit'));
+          },
+          { once: true },
+        );
+      return request;
+    },
+  );
   await assert.rejects(queue.enqueue(sampleCapture(), abort.signal), /cancelled before commit/);
-  assert.equal(payloadWritten, true, 'The rollback must happen after request success, before transaction completion');
+  assert.equal(
+    payloadWritten,
+    true,
+    'The rollback must happen after request success, before transaction completion',
+  );
   await queue.close();
   const reopened = new CaptureQueue({ factory });
   assert.equal(await reopened.read(sampleCapture().id), undefined);

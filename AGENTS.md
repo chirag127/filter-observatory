@@ -55,6 +55,16 @@ The companion's verified commands are `npm test`, `npm run compile`, `npm run bu
 `npm run build:firefox`, `npm run zip`, and `npm run zip:firefox`, from `companion/`.
 Reuse matching package/test receipts rather than rebuilding because a session restarted.
 
+Install root and companion dependencies with `npm ci` and `npm --prefix companion ci`.
+From the root, run `npm run format:check` and `npm run lint` for blocking formatting and
+correctness checks across maintained root and companion sources. Run `npm run format`
+to apply the pinned Prettier style. ESLint uses recommended JavaScript/TypeScript rules
+plus strict equality, no `var`, and `prefer-const`; TypeScript type checking remains
+`npm --prefix companion run compile`. Formatting excludes contribution evidence,
+lockfiles, generated output, dependencies, secrets, and the exact CLAUDE.md overlay.
+PowerShell packaging helpers are not covered by Prettier or ESLint. CI also runs root
+and companion offline tests, companion compilation, and both browser builds.
+
 Setup, local configuration and live-operation commands belong in the canonical
 [operations guide](../../../../../docs/okf/filter-observatory/operations.md).
 Live verification scripts require explicit opt-in and fresh evidence directories;
