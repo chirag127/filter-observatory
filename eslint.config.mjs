@@ -11,6 +11,7 @@ export default [
       '**/dist/**',
       '**/coverage/**',
       '**/test-results/**',
+      '**/megalinter-reports/**',
       'contributions/**',
     ],
   },

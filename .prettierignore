@@ -5,6 +5,7 @@ node_modules/
 **/dist/
 **/coverage/
 **/test-results/
+**/megalinter-reports/
 contributions/
 **/package-lock.json
 **/.env*

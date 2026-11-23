@@ -9,7 +9,7 @@ $evidenceDirectory = Join-Path $root 'test-results'
 $rebuild = Join-Path $evidenceDirectory ('source-rebuild-' + [guid]::NewGuid().ToString('N'))
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-function Get-TreeHashes([string]$directory) {
+function Get-TreeHash([string]$directory) {
   $hashes = [ordered]@{}
   Get-ChildItem -LiteralPath $directory -File -Recurse | Sort-Object FullName | ForEach-Object {
     $name = [IO.Path]::GetRelativePath($directory, $_.FullName).Replace('\', '/')
@@ -47,9 +47,10 @@ foreach ($target in @('chrome', 'firefox', 'sources')) {
       }
       [IO.Directory]::CreateDirectory($rebuild) | Out-Null
       [IO.Compression.ZipFile]::ExtractToDirectory($path, $rebuild)
-    } else {
+    }
+    else {
       $directory = Join-Path $output $(if ($target -eq 'chrome') { 'chrome-mv3' } else { 'firefox-mv2' })
-      $hashes = Get-TreeHashes $directory
+      $hashes = Get-TreeHash $directory
       if ($entries.Count -ne $hashes.Count) { throw "Archive/output count mismatch for $target" }
       foreach ($entry in $archive.Entries) {
         $name = $entry.FullName.Replace('\', '/')
@@ -71,9 +72,14 @@ foreach ($target in @('chrome', 'firefox', 'sources')) {
       }
       if ($target -eq 'firefox' -and $command.suggested_key) { throw 'Firefox must not inherit the Windows Chrome shortcut.' }
     }
-    $archives[$target] = [ordered]@{ path = $path; bytes = (Get-Item -LiteralPath $path).Length;
-      sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant(); entries = $entries }
-  } finally { $archive.Dispose() }
+    $archives[$target] = [ordered]@{
+      path = $path
+      bytes = (Get-Item -LiteralPath $path).Length
+      sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+      entries = $entries
+    }
+  }
+  finally { $archive.Dispose() }
 }
 
 # Resolve tooling from the existing pinned companion dependencies; source inputs come only from the archive.
@@ -81,18 +87,27 @@ Push-Location $rebuild
 try {
   & node (Join-Path $root 'node_modules/wxt/bin/wxt.mjs') build -b firefox
   if ($LASTEXITCODE -ne 0) { throw "Extracted-source build failed with exit $LASTEXITCODE" }
-} finally { Pop-Location }
+}
+finally { Pop-Location }
 
-$expected = Get-TreeHashes (Join-Path $output 'firefox-mv2')
-$actual = Get-TreeHashes (Join-Path $rebuild '.output/firefox-mv2')
+$expected = Get-TreeHash (Join-Path $output 'firefox-mv2')
+$actual = Get-TreeHash (Join-Path $rebuild '.output/firefox-mv2')
 if (($expected.Keys -join '|') -ne ($actual.Keys -join '|')) { throw 'Rebuilt file list differs from packaged output.' }
 foreach ($name in $expected.Keys) {
   if ($expected[$name] -ne $actual[$name]) { throw "Rebuilt bytes differ: $name" }
 }
 
-$receipt = [ordered]@{ verifiedAt = [DateTime]::UtcNow.ToString('o'); archives = $archives; sourceHashes = $sourceHashes;
-  sourceRebuild = [ordered]@{ path = $rebuild; installedDependencies = (Join-Path $root 'node_modules');
-    matchedFiles = $actual.Count; hashes = $actual } }
+$receipt = [ordered]@{
+  verifiedAt = [DateTime]::UtcNow.ToString('o')
+  archives = $archives
+  sourceHashes = $sourceHashes
+  sourceRebuild = [ordered]@{
+    path = $rebuild
+    installedDependencies = (Join-Path $root 'node_modules')
+    matchedFiles = $actual.Count
+    hashes = $actual
+  }
+}
 $receiptPath = Join-Path $evidenceDirectory 'packages.json'
 $receipt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $receiptPath -Encoding utf8
 Write-Output "Verified Chrome/Firefox archives and all $($actual.Count) rebuilt Firefox files. Receipt: $receiptPath"

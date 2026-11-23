@@ -62,8 +62,24 @@ to apply the pinned Prettier style. ESLint uses recommended JavaScript/TypeScrip
 plus strict equality, no `var`, and `prefer-const`; TypeScript type checking remains
 `npm --prefix companion run compile`. Formatting excludes contribution evidence,
 lockfiles, generated output, dependencies, secrets, and the exact CLAUDE.md overlay.
-PowerShell packaging helpers are not covered by Prettier or ESLint. CI also runs root
-and companion offline tests, companion compilation, and both browser builds.
+MegaLinter v10.2.0 adds HTMLHint, Stylelint, JSONLint, Yamllint, Actionlint,
+Markdownlint, PSScriptAnalyzer and PowerShell formatting alongside the pinned
+workspace ESLint and Prettier. Its full image covers every maintained language
+currently present, not every possible language or historical contribution artifact.
+CI checks only, never applies fixes or commits, and retains lint reports. CI also
+runs root and companion offline tests, compilation, and both browser builds.
+
+With Docker's Linux daemon running, check all languages from the repository root:
+
+```powershell
+docker run --rm --platform linux/amd64 -v "${PWD}:/tmp/lint" -e APPLY_FIXES=none ghcr.io/oxsecurity/megalinter:v10.2.0
+```
+
+The container installs locked root dependencies with lifecycle scripts disabled.
+Reports go to excluded `megalinter-reports/`. PowerShell uses PSScriptAnalyzer's
+`Invoke-Formatter` with `.powershell-formatter.psd1`; fixes are an explicit local
+operation, not a CI side effect. Local Docker verification requires a running daemon;
+a successful standalone lint command does not establish a successful container run.
 
 Setup, local configuration and live-operation commands belong in the canonical
 [operations guide](../../../../../docs/okf/filter-observatory/operations.md).
