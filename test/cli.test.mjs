@@ -13,11 +13,17 @@ const cli = fileURLToPath(new URL('../src/cli.mjs', import.meta.url));
 function fixture(t) {
   const directory = mkdtempSync(join(tmpdir(), 'observatory-cli-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const run = (...args) => JSON.parse(execFileSync(process.execPath, [cli, ...args, '--state-dir', directory], { encoding: 'utf8', timeout: 20000 }));
+  const run = (...args) =>
+    JSON.parse(
+      execFileSync(process.execPath, [cli, ...args, '--state-dir', directory], {
+        encoding: 'utf8',
+        timeout: 20000,
+      }),
+    );
   return { directory, run };
 }
 
-test('CLI initializes local state without exposing the token and persists an ingested capture', t => {
+test('CLI initializes local state without exposing the token and persists an ingested capture', (t) => {
   const { directory, run } = fixture(t);
   const initialized = run('init');
   const token = readFileSync(initialized.tokenPath, 'utf8').trim();
@@ -30,18 +36,21 @@ test('CLI initializes local state without exposing the token and persists an ing
   assert.equal(run('config').provider.enabled, false);
 });
 
-test('CLI errors are nonzero and do not echo malformed evidence', t => {
+test('CLI errors are nonzero and do not echo malformed evidence', (t) => {
   const { directory, run } = fixture(t);
   run('init');
   const file = join(directory, 'bad.json');
   writeFileSync(file, '{"token":"sensitive-fixture"');
-  const child = spawnSync(process.execPath, [cli, 'ingest', file, '--state-dir', directory], { encoding: 'utf8', timeout: 20000 });
+  const child = spawnSync(process.execPath, [cli, 'ingest', file, '--state-dir', directory], {
+    encoding: 'utf8',
+    timeout: 20000,
+  });
   assert.equal(child.status, 1);
   assert.equal((child.stdout + child.stderr).includes('sensitive-fixture'), false);
   assert.equal(run('status').totals.captures, 0);
 });
 
-test('CLI imports source-attributed annotations without re-ingesting a capture', t => {
+test('CLI imports source-attributed annotations without re-ingesting a capture', (t) => {
   const { directory, run } = fixture(t);
   run('init');
   const capture = captureFixture();
@@ -49,23 +58,61 @@ test('CLI imports source-attributed annotations without re-ingesting a capture',
   writeFileSync(file, JSON.stringify(capture));
   run('ingest', file);
   const annotationFile = join(directory, 'notes.json');
-  writeFileSync(annotationFile, JSON.stringify({ source: 'Fixture observation', observedAt: '2026-11-21T16:01:00.000Z', context: {}, images: [] }));
+  writeFileSync(
+    annotationFile,
+    JSON.stringify({
+      source: 'Fixture observation',
+      observedAt: '2026-11-21T16:01:00.000Z',
+      context: {},
+      images: [],
+    }),
+  );
   assert.match(run('annotate', capture.id, annotationFile).revision, /^[a-f0-9]{64}$/);
   assert.equal(run('status').totals.captures, 1);
 });
 
-test('CLI corpus imports preserve embedded provenance and apply only explicit overrides', async t => {
+test('CLI corpus imports preserve embedded provenance and apply only explicit overrides', async (t) => {
   const { directory, run } = fixture(t);
   run('init');
   const file = join(directory, 'corpus.json');
   const snapshot = { listId: 'FIXED1', createdOn: '2026-11-21T00:00:00Z', sha256: 'b'.repeat(64) };
   const entries = [{ rank: 1, domain: 'example.com', url: 'https://example.com/article' }];
   for (const { name, input, args, source, expectedSnapshot } of [
-    { name: 'embedded source and snapshot', input: { source: 'tranco', snapshot, entries }, args: [], source: 'tranco', expectedSnapshot: snapshot },
-    { name: 'source-only override', input: { source: 'tranco', snapshot, entries }, args: ['--source', 'operator-check'], source: 'operator-check', expectedSnapshot: snapshot },
-    { name: 'snapshot-only override', input: { source: 'tranco', snapshot, entries }, args: ['--snapshot', 'fixed-override'], source: 'tranco', expectedSnapshot: 'fixed-override' },
-    { name: 'both explicit overrides', input: { source: 'tranco', snapshot, entries }, args: ['--source', 'operator-check', '--snapshot', 'fixed-override'], source: 'operator-check', expectedSnapshot: 'fixed-override' },
-    { name: 'absent metadata retains parser defaults', input: entries, args: [], source: 'manual', expectedSnapshot: null },
+    {
+      name: 'embedded source and snapshot',
+      input: { source: 'tranco', snapshot, entries },
+      args: [],
+      source: 'tranco',
+      expectedSnapshot: snapshot,
+    },
+    {
+      name: 'source-only override',
+      input: { source: 'tranco', snapshot, entries },
+      args: ['--source', 'operator-check'],
+      source: 'operator-check',
+      expectedSnapshot: snapshot,
+    },
+    {
+      name: 'snapshot-only override',
+      input: { source: 'tranco', snapshot, entries },
+      args: ['--snapshot', 'fixed-override'],
+      source: 'tranco',
+      expectedSnapshot: 'fixed-override',
+    },
+    {
+      name: 'both explicit overrides',
+      input: { source: 'tranco', snapshot, entries },
+      args: ['--source', 'operator-check', '--snapshot', 'fixed-override'],
+      source: 'operator-check',
+      expectedSnapshot: 'fixed-override',
+    },
+    {
+      name: 'absent metadata retains parser defaults',
+      input: entries,
+      args: [],
+      source: 'manual',
+      expectedSnapshot: null,
+    },
   ]) {
     await t.test(name, () => {
       writeFileSync(file, JSON.stringify(input));
@@ -77,7 +124,9 @@ test('CLI corpus imports preserve embedded provenance and apply only explicit ov
       try {
         assert.equal(store.run(imported.id).corpus.source, source);
         assert.deepEqual(store.run(imported.id).corpus.snapshot, expectedSnapshot);
-      } finally { store.close(); }
+      } finally {
+        store.close();
+      }
     });
   }
 });
@@ -88,11 +137,17 @@ const adguard = 'bgnkhhnnamicmpeenaelnjfhikgbkllg';
 
 function recoverySnapshot(browser) {
   return {
-    schemaVersion: 1, kind: 'filter-observatory-comparison', comparisonId: `recovery-${browser}`,
-    browser: { instance: browser, name: 'Chrome', version: '158' }, url: 'https://example.com/',
-    createdAt: '2026-11-21T00:00:00Z', phase: 'adguard-off', isolateUbol: true,
+    schemaVersion: 1,
+    kind: 'filter-observatory-comparison',
+    comparisonId: `recovery-${browser}`,
+    browser: { instance: browser, name: 'Chrome', version: '158' },
+    url: 'https://example.com/',
+    createdAt: '2026-11-21T00:00:00Z',
+    phase: 'adguard-off',
+    isolateUbol: true,
     original: [{ id: adguard, name: 'AdGuard', version: '5.5', enabled: true }],
-    intent: [{ id: adguard, enabled: false }], restore: [{ id: adguard, enabled: true }],
+    intent: [{ id: adguard, enabled: false }],
+    restore: [{ id: adguard, enabled: true }],
   };
 }
 
@@ -125,14 +180,17 @@ function recover(directory, outcomes = {}) {
     const { main } = await import(${JSON.stringify(new URL('../src/cli.mjs', import.meta.url).href)});
     await main(['recover', '--state-dir', process.argv[1]]);
   `;
-  const child = spawnSync(process.execPath, ['--input-type=module', '--eval', script, directory, JSON.stringify(outcomes)],
-    { encoding: 'utf8', timeout: 20000 });
+  const child = spawnSync(
+    process.execPath,
+    ['--input-type=module', '--eval', script, directory, JSON.stringify(outcomes)],
+    { encoding: 'utf8', timeout: 20000 },
+  );
   assert.equal(child.error, undefined);
   assert.equal(child.signal, null);
   return { ...child, results: JSON.parse(child.stdout) };
 }
 
-test('CLI recovery is nonzero for a failed browser, retains its recovery data and permits a later retry', async t => {
+test('CLI recovery is nonzero for a failed browser, retains its recovery data and permits a later retry', async (t) => {
   const { directory, run } = fixture(t);
   run('init');
   const store = openStore(directory);
@@ -141,18 +199,26 @@ test('CLI recovery is nonzero for a failed browser, retains its recovery data an
       await store.journal(browser).write(recoverySnapshot(browser));
       store.acquireLease(`browser:${browser}`, `interrupted-${browser}`);
     }
-  } finally { store.close(); }
+  } finally {
+    store.close();
+  }
   const failed = recover(directory, { [browserOne]: 'restored', [browserTwo]: 'failed' });
-  assert.equal(failed.results.find(item => item.browser === browserOne).result.state, 'restored');
-  const result = failed.results.find(item => item.browser === browserTwo).result;
+  assert.equal(failed.results.find((item) => item.browser === browserOne).result.state, 'restored');
+  const result = failed.results.find((item) => item.browser === browserTwo).result;
   assert.equal(result.state, 'failed');
   assert.equal(result.reason, 'restoration_mismatch');
   const pending = openStore(directory);
   try {
-    assert.deepEqual(pending.journals(), [{ name: browserTwo, snapshot: recoverySnapshot(browserTwo) }]);
-    assert.deepEqual(pending.leases().map(({ name, owner }) => ({ name, owner })),
-      [{ name: `browser:${browserTwo}`, owner: `interrupted-${browserTwo}` }]);
-  } finally { pending.close(); }
+    assert.deepEqual(pending.journals(), [
+      { name: browserTwo, snapshot: recoverySnapshot(browserTwo) },
+    ]);
+    assert.deepEqual(
+      pending.leases().map(({ name, owner }) => ({ name, owner })),
+      [{ name: `browser:${browserTwo}`, owner: `interrupted-${browserTwo}` }],
+    );
+  } finally {
+    pending.close();
+  }
   assert.equal(failed.status, 1);
   assert.equal(run('status').recoveryRequired, true);
   const retry = recover(directory, { [browserTwo]: 'restored' });
@@ -162,45 +228,62 @@ test('CLI recovery is nonzero for a failed browser, retains its recovery data an
   try {
     assert.deepEqual(recovered.journals(), []);
     assert.deepEqual(recovered.leases(), []);
-  } finally { recovered.close(); }
+  } finally {
+    recovered.close();
+  }
   const noWork = recover(directory);
   assert.equal(noWork.status, 0, noWork.stderr);
   assert.deepEqual(noWork.results, []);
 });
 
-test('CLI recovery does not call a retained null journal a successful no-op', async t => {
+test('CLI recovery does not call a retained null journal a successful no-op', async (t) => {
   const { directory, run } = fixture(t);
   run('init');
   const store = openStore(directory);
-  try { await store.journal(browserOne).write(null); }
-  finally { store.close(); }
+  try {
+    await store.journal(browserOne).write(null);
+  } finally {
+    store.close();
+  }
   const child = recover(directory);
   assert.equal(child.results[0].result.state, 'not-needed');
   const pending = openStore(directory);
-  try { assert.deepEqual(pending.journals(), [{ name: browserOne, snapshot: null }]); }
-  finally { pending.close(); }
+  try {
+    assert.deepEqual(pending.journals(), [{ name: browserOne, snapshot: null }]);
+  } finally {
+    pending.close();
+  }
   assert.equal(child.status, 1);
 });
 
-test('CLI recovery is nonzero when storage retains a browser lease without a journal', t => {
+test('CLI recovery is nonzero when storage retains a browser lease without a journal', (t) => {
   const { directory, run } = fixture(t);
   run('init');
   const store = openStore(directory);
-  try { store.acquireLease(`browser:${browserOne}`, 'interrupted-owner'); }
-  finally { store.close(); }
+  try {
+    store.acquireLease(`browser:${browserOne}`, 'interrupted-owner');
+  } finally {
+    store.close();
+  }
   const Database = sqlite.Database ?? sqlite.DatabaseSync;
   const database = new Database(join(directory, 'observatory.sqlite'));
   try {
     database.exec(`CREATE TRIGGER retain_recovery_lease BEFORE DELETE ON leases
       WHEN OLD.name = 'browser:${browserOne}' BEGIN SELECT RAISE(IGNORE); END;`);
-  } finally { database.close(); }
+  } finally {
+    database.close();
+  }
   const child = recover(directory);
   assert.deepEqual(child.results, []);
   const pending = openStore(directory);
   try {
     assert.deepEqual(pending.journals(), []);
-    assert.deepEqual(pending.leases().map(({ name, owner }) => ({ name, owner })),
-      [{ name: `browser:${browserOne}`, owner: 'interrupted-owner' }]);
-  } finally { pending.close(); }
+    assert.deepEqual(
+      pending.leases().map(({ name, owner }) => ({ name, owner })),
+      [{ name: `browser:${browserOne}`, owner: 'interrupted-owner' }],
+    );
+  } finally {
+    pending.close();
+  }
   assert.equal(child.status, 1);
 });

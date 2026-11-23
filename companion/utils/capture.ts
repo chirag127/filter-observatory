@@ -30,7 +30,10 @@ export interface CapturePlatform {
   getTab(id: number): Promise<ObservedTab>;
   getActiveTab(windowId: number): Promise<ObservedTab>;
   isWindowFocused(windowId: number): Promise<boolean>;
-  observeDocument(target: CaptureTarget, expected?: DocumentObservation): Promise<DocumentObservation>;
+  observeDocument(
+    target: CaptureTarget,
+    expected?: DocumentObservation,
+  ): Promise<DocumentObservation>;
   screenshot(windowId: number): Promise<string>;
   decodePng(dataUrl: string): Promise<{ dataBase64: string; width: number; height: number }>;
   browserInfo(): Promise<CaptureEnvelope['browser']>;
@@ -50,8 +53,15 @@ function httpUrl(value: string | undefined): string {
 }
 
 function assertTab(tab: ObservedTab, target: CaptureTarget, url: string): void {
-  if (tab.id !== target.id || tab.windowId !== target.windowId || !tab.active ||
-      tab.discarded || tab.status === 'loading' || tab.pendingUrl || httpUrl(tab.url) !== url) {
+  if (
+    tab.id !== target.id ||
+    tab.windowId !== target.windowId ||
+    !tab.active ||
+    tab.discarded ||
+    tab.status === 'loading' ||
+    tab.pendingUrl ||
+    httpUrl(tab.url) !== url
+  ) {
     throw new Error('Capture target changed or is loading. Wait for the page and capture again.');
   }
 }
@@ -65,21 +75,32 @@ export class CaptureController {
   private readonly newId: () => string;
   private readonly checkEnvironment: (signal?: AbortSignal) => Promise<CaptureEnvironment>;
 
-  constructor(platform: CapturePlatform, sink: CaptureSink,
-    options: { now?: () => number; newId?: () => string;
-      checkEnvironment?: (signal?: AbortSignal) => Promise<CaptureEnvironment> } = {}) {
+  constructor(
+    platform: CapturePlatform,
+    sink: CaptureSink,
+    options: {
+      now?: () => number;
+      newId?: () => string;
+      checkEnvironment?: (signal?: AbortSignal) => Promise<CaptureEnvironment>;
+    } = {},
+  ) {
     this.platform = platform;
     this.sink = sink;
     this.now = options.now ?? Date.now;
     this.newId = options.newId ?? (() => crypto.randomUUID());
-    this.checkEnvironment = options.checkEnvironment ?? (async () => ({
-      limitations: ['Concurrent worker comparison state was not verified.'],
-    }));
+    this.checkEnvironment =
+      options.checkEnvironment ??
+      (async () => ({
+        limitations: ['Concurrent worker comparison state was not verified.'],
+      }));
   }
 
-  async capture(invoked?: ObservedTab,
-    checkEnvironment = this.checkEnvironment): Promise<CaptureEnvelope> {
-    if (this.busy) throw new Error('A capture is already in progress. Capture again when it finishes.');
+  async capture(
+    invoked?: ObservedTab,
+    checkEnvironment = this.checkEnvironment,
+  ): Promise<CaptureEnvelope> {
+    if (this.busy)
+      throw new Error('A capture is already in progress. Capture again when it finishes.');
     if (this.now() - this.lastScreenshotAt < 600) {
       throw new Error('Captures are too close together. Wait a moment and capture again.');
     }
@@ -90,7 +111,10 @@ export class CaptureController {
     const timeoutError = new Error('Capture timed out. Keep the page active and capture again.');
     let timer: ReturnType<typeof setTimeout>;
     const expired = new Promise<never>((_resolve, reject) => {
-      timer = setTimeout(() => { abort.abort(timeoutError); reject(timeoutError); }, 8000);
+      timer = setTimeout(() => {
+        abort.abort(timeoutError);
+        reject(timeoutError);
+      }, 8000);
     });
     const step = async <T>(operation: () => Promise<T>): Promise<T> => {
       abort.signal.throwIfAborted();
@@ -107,11 +131,13 @@ export class CaptureController {
       const url = httpUrl(target.url);
       const verifyActive = async () => {
         guard.assertUnchanged();
-        const [tab, active, focused] = await step(() => Promise.all([
-          this.platform.getTab(target.id),
-          this.platform.getActiveTab(target.windowId),
-          this.platform.isWindowFocused(target.windowId),
-        ]));
+        const [tab, active, focused] = await step(() =>
+          Promise.all([
+            this.platform.getTab(target.id),
+            this.platform.getActiveTab(target.windowId),
+            this.platform.isWindowFocused(target.windowId),
+          ]),
+        );
         guard.assertUnchanged();
         assertTab(tab, target, url);
         assertTab(active, target, url);
@@ -137,29 +163,48 @@ export class CaptureController {
       guard.assertUnchanged();
       const after = await step(() => this.platform.observeDocument(target, before));
       guard.assertUnchanged();
-      if (after.url !== before.url || after.token !== before.token || after.revision !== before.revision ||
-          after.documentId !== before.documentId || after.historyLength !== before.historyLength ||
-          !after.visible || after.ready !== 'complete') {
+      if (
+        after.url !== before.url ||
+        after.token !== before.token ||
+        after.revision !== before.revision ||
+        after.documentId !== before.documentId ||
+        after.historyLength !== before.historyLength ||
+        !after.visible ||
+        after.ready !== 'complete'
+      ) {
         throw new Error('Page document changed during capture. Capture again.');
       }
       await verifyActive();
       const environmentAfter = await step(() => checkEnvironment(abort.signal));
       guard.assertUnchanged();
-      if (environmentBefore.revision !== undefined && environmentAfter.revision !== undefined &&
-          environmentBefore.revision !== environmentAfter.revision) {
-        throw new Error('Worker comparison state changed during capture. Wait for restoration and capture again.');
+      if (
+        environmentBefore.revision !== undefined &&
+        environmentAfter.revision !== undefined &&
+        environmentBefore.revision !== environmentAfter.revision
+      ) {
+        throw new Error(
+          'Worker comparison state changed during capture. Wait for restoration and capture again.',
+        );
       }
       // Attribution is checked over the screenshot interval, not later network/queue waits.
       stop();
-      const [image, browser] = await step(() => Promise.all([
-        this.platform.decodePng(dataUrl), this.platform.browserInfo(),
-      ]));
+      const [image, browser] = await step(() =>
+        Promise.all([this.platform.decodePng(dataUrl), this.platform.browserInfo()]),
+      );
       const id = this.newId();
       const capture: CaptureEnvelope = {
-        schemaVersion: 1, id, source: 'companion', url,
-        title: before.title.slice(0, 1024), capturedAt, browser,
-        tab: { id: target.id, windowId: target.windowId,
-          ...(before.documentId ? { documentId: before.documentId } : {}) },
+        schemaVersion: 1,
+        id,
+        source: 'companion',
+        url,
+        title: before.title.slice(0, 1024),
+        capturedAt,
+        browser,
+        tab: {
+          id: target.id,
+          windowId: target.windowId,
+          ...(before.documentId ? { documentId: before.documentId } : {}),
+        },
         images: [{ id: `${id}-viewport`, mimeType: 'image/png', ...image }],
         text: '',
         context: { pageState: 'unknown', sensitivity: 'unknown' },
@@ -169,8 +214,14 @@ export class CaptureController {
           'Installed blocker configuration, list revisions, page state and sensitivity have not been measured.',
           'Browser version is reported by the user agent and may have reduced precision.',
           ...new Set([...environmentBefore.limitations, ...environmentAfter.limitations]),
-          ...(!before.documentId ? ['Native document ID unavailable; isolated-document token and event guards used.'] : []),
-          ...(before.navigationTracked !== true ? ['Navigation API unavailable; some same-URL history changes may not be detected. Tab, lifecycle and history-length changes are guarded.'] : []),
+          ...(!before.documentId
+            ? ['Native document ID unavailable; isolated-document token and event guards used.']
+            : []),
+          ...(before.navigationTracked !== true
+            ? [
+                'Navigation API unavailable; some same-URL history changes may not be detected. Tab, lifecycle and history-length changes are guarded.',
+              ]
+            : []),
         ],
       };
       // Cancellation requests an abort; the storage commit/abort outcome remains authoritative.

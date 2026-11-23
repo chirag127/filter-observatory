@@ -9,39 +9,69 @@ import { captureFixture } from './helpers/core-fixtures.mjs';
 function fixture(t) {
   const directory = mkdtempSync(join(tmpdir(), 'filter-observatory-store-'));
   let store = openStore(directory);
-  t.after(() => { store.close(); rmSync(directory, { recursive: true, force: true }); });
-  return { get store() { return store; }, reopen() { store.close(); store = openStore(directory); return store; } };
+  t.after(() => {
+    store.close();
+    rmSync(directory, { recursive: true, force: true });
+  });
+  return {
+    get store() {
+      return store;
+    },
+    reopen() {
+      store.close();
+      store = openStore(directory);
+      return store;
+    },
+  };
 }
 
-test('captures and PNG bytes survive a close/reopen with idempotent insertion', t => {
+test('captures and PNG bytes survive a close/reopen with idempotent insertion', (t) => {
   const f = fixture(t);
   const capture = captureFixture();
   assert.deepEqual(f.store.ingest(capture), { id: capture.id, state: 'queued', duplicate: false });
   assert.equal(f.store.ingest(capture).duplicate, true);
   const reopened = f.reopen();
   assert.deepEqual(reopened.capture(capture.id), capture);
-  assert.equal(reopened.image(capture.id, 'viewport').bytes.equals(Buffer.from(capture.images[0].dataBase64, 'base64')), true);
+  assert.equal(
+    reopened
+      .image(capture.id, 'viewport')
+      .bytes.equals(Buffer.from(capture.images[0].dataBase64, 'base64')),
+    true,
+  );
   assert.equal(reopened.summary().captures.length, 1);
   assert.equal(JSON.stringify(reopened.summary()).includes('dataBase64'), false);
-  assert.throws(() => reopened.ingest({ ...capture, title: 'different' }), { code: 'capture_conflict' });
+  assert.throws(() => reopened.ingest({ ...capture, title: 'different' }), {
+    code: 'capture_conflict',
+  });
   assert.equal(reopened.capture(capture.id).title, 'Example article');
 });
 
-test('exclusive capture claims prevent two workers from analyzing one item', t => {
+test('exclusive capture claims prevent two workers from analyzing one item', (t) => {
   const { store } = fixture(t);
   store.ingest(captureFixture());
   const claimed = store.claimCapture();
   assert.equal(claimed.id, 'capture_fixture_01');
   assert.equal(store.claimCapture(), null);
-  store.finishCapture(claimed.id, { state: 'accepted', findings: [], provenance: { model: 'fixture' } });
+  store.finishCapture(claimed.id, {
+    state: 'accepted',
+    findings: [],
+    provenance: { model: 'fixture' },
+  });
   assert.equal(store.captureStatus(claimed.id).state, 'accepted');
 });
 
-test('interrupted analysis stays visible and uncertain publication is never made ready automatically', t => {
+test('interrupted analysis stays visible and uncertain publication is never made ready automatically', (t) => {
   const f = fixture(t);
   f.store.ingest(captureFixture());
   f.store.claimCapture();
-  f.store.saveReport({ id: 'report01', fingerprint: 'fp01', state: 'ready', title: 'Example', body: 'Evidence', reasons: [] });
+  f.store.saveReport({
+    id: 'report01',
+    fingerprint: 'fp01',
+    state: 'ready',
+    title: 'Example',
+    body: 'Evidence',
+    reasons: [],
+  });
   assert.equal(f.store.claimReport().id, 'report01');
   f.reopen().recoverInterrupted();
   assert.equal(f.store.captureStatus('capture_fixture_01').state, 'interrupted');
@@ -49,12 +79,22 @@ test('interrupted analysis stays visible and uncertain publication is never made
   assert.equal(f.store.claimReport(), null);
 });
 
-test('outbox fingerprint deduplication preserves a submitted receipt', t => {
+test('outbox fingerprint deduplication preserves a submitted receipt', (t) => {
   const { store } = fixture(t);
-  const report = { id: 'report01', fingerprint: 'same-finding', state: 'ready', reasons: [], body: 'First', title: 'Example' };
+  const report = {
+    id: 'report01',
+    fingerprint: 'same-finding',
+    state: 'ready',
+    reasons: [],
+    body: 'First',
+    title: 'Example',
+  };
   store.saveReport(report);
   store.claimReport();
-  store.finishReport(report.id, { state: 'created', receipt: { url: 'https://github.com/example/project/issues/1', number: 1 } });
+  store.finishReport(report.id, {
+    state: 'created',
+    receipt: { url: 'https://github.com/example/project/issues/1', number: 1 },
+  });
   const repeated = store.saveReport({ ...report, id: 'report02', body: 'Second' });
   assert.equal(repeated.id, report.id);
   assert.equal(repeated.duplicate, true);
@@ -62,7 +102,101 @@ test('outbox fingerprint deduplication preserves a submitted receipt', t => {
   assert.equal(store.claimReport(), null);
 });
 
-test('browser journal and cross-process lease survive reopen and require the owning token', async t => {
+test('current catalog retirement preserves history, source boundaries and reappearance', (t) => {
+  const f = fixture(t);
+  const record = (id, source = 'ubo') => ({ id, source, name: id });
+  const current = (records, day, source = 'ubo') => ({
+    source,
+    records,
+    errors: [],
+    counts: { complete: true },
+    currentSnapshot: { source, retrievedAt: `2026-11-${day}T00:00:00Z`, digest: 'a'.repeat(64) },
+  });
+  f.store.saveCatalog({ source: 'ubo', records: [record('historical')] });
+  f.store.saveCatalog(current([record('one'), record('two')], '20'));
+  f.store.saveCatalog(current([record('other', 'adguard')], '20', 'adguard'));
+  f.store.saveCatalog(current([record('two')], '21'));
+  assert.deepEqual(
+    f.store.catalog().map((item) => item.id),
+    ['historical', 'other', 'two'],
+  );
+  assert.equal(
+    f.store.catalog({ includeRetired: true }).find((item) => item.id === 'one').retired,
+    true,
+  );
+  assert.ok(f.store.listRecords('catalog-history:one:').records.length);
+  f.reopen();
+  for (const result of [
+    { source: 'ubo', records: [record('one')] },
+    { ...current([record('one')], '22'), counts: { complete: false } },
+    { ...current([record('one')], '22'), errors: [{ code: 'partial' }] },
+    current([record('one')], '19'),
+  ])
+    f.store.saveCatalog(result);
+  assert.equal(
+    f.store.catalog().some((item) => item.id === 'one'),
+    false,
+  );
+  assert.equal(
+    f.store.catalog().some((item) => item.id === 'two'),
+    true,
+  );
+  f.store.saveCatalog(current([record('one'), record('two')], '23'));
+  assert.equal(
+    f.store.catalog().some((item) => item.id === 'one'),
+    true,
+  );
+  assert.equal(f.store.summary().totals.catalog, 4);
+  f.store.saveCatalog(current([], '24'));
+  assert.deepEqual(
+    f.store.catalog().map((item) => item.id),
+    ['historical', 'other'],
+  );
+  assert.equal(f.store.catalog({ includeRetired: true }).length, 4);
+  for (const day of ['23', '24']) {
+    f.store.saveCatalog(current([record(`stale-${day}`)], day));
+    assert.equal(
+      f.store.catalog().some((item) => item.id === `stale-${day}`),
+      false,
+    );
+    assert.equal(f.store.listRecords(`catalog-history:stale-${day}:`).records.length, 1);
+  }
+  const before = f.store.catalog({ includeRetired: true });
+  assert.throws(
+    () =>
+      f.store.saveCatalog(
+        current([record('new-record', 'adguard'), record('one', 'adguard')], '25', 'adguard'),
+      ),
+    { code: 'invalid_catalog_snapshot' },
+  );
+  assert.deepEqual(f.store.catalog({ includeRetired: true }), before);
+  assert.equal(f.store.listRecords('catalog-history:new-record:').records.length, 0);
+});
+
+test('absent finding IDs return no finding without binding undefined to SQLite', (t) => {
+  const { store } = fixture(t);
+  assert.equal(store.finding(), null);
+  assert.equal(store.finding(null), null);
+  assert.equal(store.finding('unknown-finding'), null);
+});
+
+test('identical ready drafts are revised and claimable while protected drafts stay unchanged', (t) => {
+  const { store } = fixture(t);
+  const prepared = {
+    id: 'identical-ready',
+    fingerprint: 'identical-ready-fingerprint',
+    state: 'ready',
+    reasons: [],
+    body: 'Ready evidence',
+  };
+  store.saveReport(prepared);
+  assert.deepEqual(store.reviseReport(prepared.id, prepared), { id: prepared.id, updated: true });
+  assert.equal(store.claimReport().id, prepared.id);
+  assert.deepEqual(store.reviseReport(prepared.id, prepared), { id: prepared.id, unchanged: true });
+  assert.equal(store.report(prepared.id).state, 'sending');
+});
+
+test('browser journal and cross-process lease survive reopen and require the owning token', async (t) => {
   const f = fixture(t);
   assert.equal(f.store.acquireLease('browser', 'worker-a'), true);
   assert.equal(f.store.acquireLease('browser', 'worker-b'), false);
@@ -76,12 +210,19 @@ test('browser journal and cross-process lease survive reopen and require the own
   assert.equal(f.store.acquireLease('browser', 'worker-b'), true);
 });
 
-test('resumable runs retain successes and account for remaining entries', t => {
+test('resumable runs retain successes and account for remaining entries', (t) => {
   const f = fixture(t);
-  const corpus = { id: 'corpus-fixture', schemaVersion: 1, source: 'fixture', snapshot: 'fixed', errors: [], entries: [
-    { id: 'one', rank: 1, domain: 'example.com', url: 'https://example.com/' },
-    { id: 'two', rank: 2, domain: 'example.org', url: 'https://example.org/' },
-  ] };
+  const corpus = {
+    id: 'corpus-fixture',
+    schemaVersion: 1,
+    source: 'fixture',
+    snapshot: 'fixed',
+    errors: [],
+    entries: [
+      { id: 'one', rank: 1, domain: 'example.com', url: 'https://example.com/' },
+      { id: 'two', rank: 2, domain: 'example.org', url: 'https://example.org/' },
+    ],
+  };
   const run = f.store.createRun(corpus, { compare: false });
   assert.equal(f.store.claimEntry(run.id).id, 'one');
   f.store.finishEntry(run.id, 'one', { state: 'completed', captureIds: ['capture_one'] });
@@ -89,14 +230,35 @@ test('resumable runs retain successes and account for remaining entries', t => {
   assert.equal(f.store.claimEntry(run.id).id, 'two');
   f.store.finishEntry(run.id, 'two', { state: 'failed', reason: 'navigation_failed' });
   assert.equal(f.store.claimEntry(run.id), null);
-  assert.deepEqual(f.store.run(run.id).counts, { pending: 0, running: 0, completed: 1, failed: 1, interrupted: 0, cancelled: 0, inconclusive: 0 });
+  assert.deepEqual(f.store.run(run.id).counts, {
+    pending: 0,
+    running: 0,
+    completed: 1,
+    failed: 1,
+    interrupted: 0,
+    cancelled: 0,
+    inconclusive: 0,
+  });
 });
 
-test('deferred report regeneration updates drafts but preserves uncertain and delivered remote identities', t => {
+test('deferred report regeneration updates drafts but preserves uncertain and delivered remote identities', (t) => {
   const { store } = fixture(t);
-  const prepared = { id: 'report-one', captureId: 'capture_fixture_01', fingerprint: 'first', state: 'deferred', reasons: ['metadata_missing'], body: 'draft' };
+  const prepared = {
+    id: 'report-one',
+    captureId: 'capture_fixture_01',
+    fingerprint: 'first',
+    state: 'deferred',
+    reasons: ['metadata_missing'],
+    body: 'draft',
+  };
   store.saveReport(prepared);
-  store.reviseReport(prepared.id, { ...prepared, fingerprint: 'second', body: 'complete', state: 'ready', reasons: [] });
+  store.reviseReport(prepared.id, {
+    ...prepared,
+    fingerprint: 'second',
+    body: 'complete',
+    state: 'ready',
+    reasons: [],
+  });
   assert.equal(store.report(prepared.id).body, 'complete');
   store.claimReport();
   store.finishReport(prepared.id, { state: 'uncertain', reason: 'response_lost' });
@@ -108,28 +270,58 @@ test('deferred report regeneration updates drafts but preserves uncertain and de
   assert.equal(store.report(prepared.id).receipt.number, 42);
 });
 
-test('context annotations remain separate from captured evidence and invalidate unsent report readiness', t => {
+test('context annotations remain separate from captured evidence and invalidate unsent report readiness', (t) => {
   const f = fixture(t);
   const capture = captureFixture();
   f.store.ingest(capture);
-  f.store.saveReport({ id: 'report-one', captureId: capture.id, fingerprint: 'one', state: 'ready', body: 'draft', reasons: [] });
-  const note = { source: 'Operator settings export', observedAt: '2026-11-21T16:01:00.000Z', context: { os: { name: 'Windows', version: '11' } }, images: [] };
+  f.store.saveReport({
+    id: 'report-one',
+    captureId: capture.id,
+    fingerprint: 'one',
+    state: 'ready',
+    body: 'draft',
+    reasons: [],
+  });
+  const note = {
+    source: 'Operator settings export',
+    observedAt: '2026-11-21T16:01:00.000Z',
+    context: { os: { name: 'Windows', version: '11' } },
+    images: [],
+  };
   const receipt = f.store.annotateCapture(capture.id, note);
   assert.match(receipt.revision, /^[a-f0-9]{64}$/);
   assert.equal(f.store.claimReport(), null);
   f.reopen();
   assert.deepEqual(f.store.capture(capture.id), capture);
   assert.equal(f.store.annotations(capture.id).context.os.version, '11');
-  assert.deepEqual(f.store.getRecord(`annotations-history:${capture.id}:${receipt.revision}`), note);
+  assert.deepEqual(
+    f.store.getRecord(`annotations-history:${capture.id}:${receipt.revision}`),
+    note,
+  );
 });
 
-test('eligible duplicate evidence upgrades the canonical unsent draft and retains its stable identity', t => {
+test('eligible duplicate evidence upgrades the canonical unsent draft and retains its stable identity', (t) => {
   const f = fixture(t);
-  const earlier = { id: 'earlier-report', fingerprint: 'same-observation', captureId: 'earlier-capture', findingId: 'earlier-finding',
-    state: 'deferred', reasons: ['privacy-check-missing'], title: 'Observed advertisement', body: 'Incomplete evidence' };
+  const earlier = {
+    id: 'earlier-report',
+    fingerprint: 'same-observation',
+    captureId: 'earlier-capture',
+    findingId: 'earlier-finding',
+    state: 'deferred',
+    reasons: ['privacy-check-missing'],
+    title: 'Observed advertisement',
+    body: 'Incomplete evidence',
+  };
   f.store.saveReport(earlier);
-  const later = { ...earlier, id: 'later-report', captureId: 'later-capture', findingId: 'later-finding',
-    state: 'ready', reasons: [], body: 'Complete later evidence' };
+  const later = {
+    ...earlier,
+    id: 'later-report',
+    captureId: 'later-capture',
+    findingId: 'later-finding',
+    state: 'ready',
+    reasons: [],
+    body: 'Complete later evidence',
+  };
   const receipt = f.store.saveReport(later);
   assert.equal(receipt.id, 'earlier-report');
   f.reopen();
@@ -142,24 +334,51 @@ test('eligible duplicate evidence upgrades the canonical unsent draft and retain
   assert.equal(f.store.report('earlier-report').findingId, 'later-finding');
 });
 
-test('a regenerated duplicate promotes eligible evidence without overwriting an uncertain submission', t => {
+test('a regenerated duplicate promotes eligible evidence without overwriting an uncertain submission', (t) => {
   const { store } = fixture(t);
-  const earlier = { id: 'earlier-report', fingerprint: 'same-observation', findingId: 'earlier-finding', state: 'deferred', reasons: ['privacy-check-missing'], body: 'Incomplete' };
-  const later = { id: 'later-report', fingerprint: 'unattributed', findingId: 'later-finding', state: 'deferred', reasons: ['attribution-unknown'], body: 'Later evidence' };
-  store.saveReport(earlier); store.saveReport(later);
-  store.reviseReport(later.id, { ...later, fingerprint: earlier.fingerprint, state: 'ready', reasons: [] });
+  const earlier = {
+    id: 'earlier-report',
+    fingerprint: 'same-observation',
+    findingId: 'earlier-finding',
+    state: 'deferred',
+    reasons: ['privacy-check-missing'],
+    body: 'Incomplete',
+  };
+  const later = {
+    id: 'later-report',
+    fingerprint: 'unattributed',
+    findingId: 'later-finding',
+    state: 'deferred',
+    reasons: ['attribution-unknown'],
+    body: 'Later evidence',
+  };
+  store.saveReport(earlier);
+  store.saveReport(later);
+  store.reviseReport(later.id, {
+    ...later,
+    fingerprint: earlier.fingerprint,
+    state: 'ready',
+    reasons: [],
+  });
   assert.equal(store.report(earlier.id).state, 'ready');
   assert.equal(store.report(earlier.id).findingId, 'later-finding');
   assert.equal(store.report(later.id).state, 'duplicate');
   store.claimReport();
   store.finishReport(earlier.id, { state: 'uncertain', attempt: { contentHash: 'original-hash' } });
-  store.saveReport({ ...earlier, id: 'new-report', findingId: 'new-finding', state: 'ready', reasons: [], body: 'New content' });
+  store.saveReport({
+    ...earlier,
+    id: 'new-report',
+    findingId: 'new-finding',
+    state: 'ready',
+    reasons: [],
+    body: 'New content',
+  });
   assert.equal(store.report(earlier.id).state, 'uncertain');
   assert.equal(store.report(earlier.id).findingId, 'later-finding');
   assert.equal(store.report(earlier.id).attempt.contentHash, 'original-hash');
 });
 
-test('record scan retains every matching publication debt across bounded pages and reopen', t => {
+test('record scan retains every matching publication debt across bounded pages and reopen', (t) => {
   const f = fixture(t);
   for (const [key, value] of [
     ['image-publication:c', { state: 'uncertain', attempt: 3 }],
@@ -167,41 +386,58 @@ test('record scan retains every matching publication debt across bounded pages a
     ['image-publication:a', { state: 'sending', attempt: 1 }],
     ['image-publication:b', { state: 'uploaded', attempt: 2 }],
     ['image-publication-extra:a', { state: 'unrelated' }],
-  ]) f.store.setRecord(key, value);
+  ])
+    f.store.setRecord(key, value);
 
   const first = f.store.listRecords('image-publication:', { limit: 2 });
   assert.deepEqual(first, {
     records: [
       { key: 'image-publication:a', value: { state: 'sending', attempt: 1 } },
       { key: 'image-publication:b', value: { state: 'uploaded', attempt: 2 } },
-    ], nextCursor: 'image-publication:b', complete: false,
+    ],
+    nextCursor: 'image-publication:b',
+    complete: false,
   });
-  const second = f.reopen().listRecords('image-publication:', { after: first.nextCursor, limit: 2 });
+  const second = f
+    .reopen()
+    .listRecords('image-publication:', { after: first.nextCursor, limit: 2 });
   assert.deepEqual(second, {
     records: [{ key: 'image-publication:c', value: { state: 'uncertain', attempt: 3 } }],
-    nextCursor: null, complete: true,
+    nextCursor: null,
+    complete: true,
   });
-  assert.deepEqual(f.store.listRecords('image-publication:', { after: 'image-publication:c', limit: 2 }), {
-    records: [], nextCursor: null, complete: true,
-  });
+  assert.deepEqual(
+    f.store.listRecords('image-publication:', { after: 'image-publication:c', limit: 2 }),
+    {
+      records: [],
+      nextCursor: null,
+      complete: true,
+    },
+  );
   const exactPage = f.store.listRecords('image-publication:', { limit: 3 });
   assert.equal(exactPage.records.length, 3);
   assert.equal(exactPage.complete, true);
   assert.equal(exactPage.nextCursor, null);
 });
 
-test('record scan treats prefix characters literally and rejects invalid page boundaries', t => {
+test('record scan treats prefix characters literally and rejects invalid page boundaries', (t) => {
   const { store } = fixture(t);
   store.setRecord('note_%:a', { retained: true });
   store.setRecord('noteXother:a', { retained: false });
   store.setRecord('NOTE_%:a', { retained: false });
   assert.deepEqual(store.listRecords('note_%:'), {
-    records: [{ key: 'note_%:a', value: { retained: true } }], nextCursor: null, complete: true,
+    records: [{ key: 'note_%:a', value: { retained: true } }],
+    nextCursor: null,
+    complete: true,
   });
   for (const limit of [0, -1, 1.5, 1001, '2']) {
     assert.throws(() => store.listRecords('note_%:', { limit }), { code: 'invalid_record_page' });
   }
   assert.throws(() => store.listRecords(''), { code: 'invalid_record_page' });
-  assert.throws(() => store.listRecords('note_%:', { after: 'other:a' }), { code: 'invalid_record_page' });
-  assert.throws(() => store.listRecords('note_%:', { after: null }), { code: 'invalid_record_page' });
+  assert.throws(() => store.listRecords('note_%:', { after: 'other:a' }), {
+    code: 'invalid_record_page',
+  });
+  assert.throws(() => store.listRecords('note_%:', { after: null }), {
+    code: 'invalid_record_page',
+  });
 });

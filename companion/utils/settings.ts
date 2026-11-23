@@ -22,13 +22,20 @@ export function validateSettings(input: unknown): ConnectionSettings {
     throw new Error('Use http://127.0.0.1 or http://localhost with an optional port, and no path.');
   }
   let url: URL;
-  try { url = new URL(raw); } catch { throw new Error('The worker URL has an invalid port.'); }
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error('The worker URL has an invalid port.');
+  }
   const port = /:(\d+)\/?$/.exec(raw)?.[1];
   if (port !== undefined && (Number(port) < 1024 || Number(port) > 65535)) {
     throw new Error('An explicit worker port must be from 1024 to 65535.');
   }
   const token = candidate.token.trim();
-  if (token && (!/^[A-Za-z0-9._~+\/-]+=*$/.test(token) || token.length < 16 || token.length > 1024)) {
+  if (
+    token &&
+    (!/^[A-Za-z0-9._~+\/-]+=*$/.test(token) || token.length < 16 || token.length > 1024)
+  ) {
     throw new Error('The worker token must be 16–1024 characters without spaces.');
   }
   return { endpoint: url.origin, token };
@@ -36,10 +43,15 @@ export function validateSettings(input: unknown): ConnectionSettings {
 
 export async function readSettings(store: LocalSettingsStore): Promise<ConnectionSettings> {
   const stored = (await store.get(SETTINGS_KEY))[SETTINGS_KEY];
-  return stored === undefined ? { endpoint: DEFAULT_ENDPOINT, token: '' } : validateSettings(stored);
+  return stored === undefined
+    ? { endpoint: DEFAULT_ENDPOINT, token: '' }
+    : validateSettings(stored);
 }
 
-export async function saveSettings(store: LocalSettingsStore, input: unknown): Promise<ConnectionSettings> {
+export async function saveSettings(
+  store: LocalSettingsStore,
+  input: unknown,
+): Promise<ConnectionSettings> {
   const settings = validateSettings(input);
   await store.set({ [SETTINGS_KEY]: settings });
   return settings;

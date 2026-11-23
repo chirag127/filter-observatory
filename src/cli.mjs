@@ -3,7 +3,13 @@ import { readFileSync, statSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import { initializeState, defaultStateDir, loadConfig, readWorkerToken, acquireProcessLock } from './config.mjs';
+import {
+  initializeState,
+  defaultStateDir,
+  loadConfig,
+  readWorkerToken,
+  acquireProcessLock,
+} from './config.mjs';
 import { openStore } from './store.mjs';
 import { createWorker } from './worker.mjs';
 import { createHttpServer } from './server.mjs';
@@ -41,17 +47,24 @@ Runtime evidence and secrets belong in the local state directory.
 `;
 
 const error = (code, message) => Object.assign(new Error(message), { code });
-const print = value => console.log(typeof value === 'string' ? value : JSON.stringify(value, null, 2));
+const print = (value) =>
+  console.log(typeof value === 'string' ? value : JSON.stringify(value, null, 2));
 
 function readBounded(file, maximum = CAPTURE_LIMITS.requestBytes) {
   if (!file) throw error('file_required', 'A file path is required');
-  if (statSync(file).size > maximum) throw error('file_too_large', 'Input exceeds the configured byte limit');
+  if (statSync(file).size > maximum)
+    throw error('file_too_large', 'Input exceeds the configured byte limit');
   return readFileSync(file, 'utf8');
 }
 
 function positiveLimit(value, fallback = 25) {
   if (value === undefined) return fallback;
-  if (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1 || Number(value) > 10000) {
+  if (
+    !/^\d+$/.test(value) ||
+    !Number.isSafeInteger(Number(value)) ||
+    Number(value) < 1 ||
+    Number(value) > 10000
+  ) {
     throw error('invalid_limit', 'Limit must be an integer from 1 to 10000');
   }
   return Number(value);
@@ -71,19 +84,30 @@ async function serve({ directory, store, config, worker, signal }) {
   });
   try {
     if (store.journals().length || store.leases().length) {
-      try { await worker.recoverBrowserState(); }
-      catch { store.event('recovery', 'Browser recovery needs attention; use the dashboard recovery action'); }
+      try {
+        await worker.recoverBrowserState();
+      } catch {
+        store.event(
+          'recovery',
+          'Browser recovery needs attention; use the dashboard recovery action',
+        );
+      }
     }
     worker.start();
-    print({ state: 'listening', dashboard: `http://127.0.0.1:${config.port}`, stateDir: directory,
-      tokenPath: join(directory, 'worker.token'), providerEnabled: config.provider.enabled,
-      publicationEnabled: config.publication.enabled });
-    await new Promise(done => {
+    print({
+      state: 'listening',
+      dashboard: `http://127.0.0.1:${config.port}`,
+      stateDir: directory,
+      tokenPath: join(directory, 'worker.token'),
+      providerEnabled: config.provider.enabled,
+      publicationEnabled: config.publication.enabled,
+    });
+    await new Promise((done) => {
       if (signal.aborted) done();
       else signal.addEventListener('abort', done, { once: true });
     });
   } finally {
-    const closing = new Promise(done => server.close(done));
+    const closing = new Promise((done) => server.close(done));
     await Promise.allSettled([worker.stop(), server.shutdownOperations()]);
     server.closeAllConnections();
     await closing;
@@ -91,20 +115,58 @@ async function serve({ directory, store, config, worker, signal }) {
 }
 
 export async function main(argv = process.argv.slice(2)) {
-  const { values, positionals } = parseArgs({ args: argv, allowPositionals: true, strict: true, options: {
-    'state-dir': { type: 'string' }, help: { type: 'boolean', short: 'h' }, format: { type: 'string' },
-    source: { type: 'string' }, snapshot: { type: 'string' }, compare: { type: 'boolean' },
-    id: { type: 'string' }, limit: { type: 'string' }, 'retry-failed': { type: 'boolean' },
-  } });
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    strict: true,
+    options: {
+      'state-dir': { type: 'string' },
+      help: { type: 'boolean', short: 'h' },
+      format: { type: 'string' },
+      source: { type: 'string' },
+      snapshot: { type: 'string' },
+      compare: { type: 'boolean' },
+      id: { type: 'string' },
+      limit: { type: 'string' },
+      'retry-failed': { type: 'boolean' },
+    },
+  });
   const [command, action, input] = positionals;
-  if (!command || values.help || command === 'help') { print(help); return; }
-  const commands = new Set(['init', 'serve', 'status', 'config', 'token', 'ingest', 'annotate', 'process', 'corpus', 'run', 'recover', 'catalog', 'reports', 'report']);
+  if (!command || values.help || command === 'help') {
+    print(help);
+    return;
+  }
+  const commands = new Set([
+    'init',
+    'serve',
+    'status',
+    'config',
+    'token',
+    'ingest',
+    'annotate',
+    'process',
+    'corpus',
+    'run',
+    'recover',
+    'catalog',
+    'reports',
+    'report',
+  ]);
   if (!commands.has(command)) throw error('unknown_command', 'Unknown command; run --help');
   const directory = resolve(values['state-dir'] || defaultStateDir());
-  if (command === 'init') { print(initializeState(directory)); return; }
+  if (command === 'init') {
+    print(initializeState(directory));
+    return;
+  }
   const config = loadConfig(directory);
-  if (command === 'config') { print(config); return; }
-  if (command === 'token') { print(readWorkerToken(directory)); return; }
+  if (command === 'config') {
+    print(config);
+    return;
+  }
+  if (command === 'token') {
+    print(readWorkerToken(directory));
+    return;
+  }
   const readOnly = ['status', 'reports', 'report'].includes(command);
   const lock = readOnly ? null : await acquireProcessLock(directory);
   let store;
@@ -116,9 +178,14 @@ export async function main(argv = process.argv.slice(2)) {
   try {
     store = openStore(directory);
     if (readOnly) {
-      if (command === 'status') print({ totals: store.summary().totals, runs: store.summary().runs,
-        recoveryRequired: store.journals().length > 0, providerEnabled: config.provider.enabled,
-        publicationEnabled: config.publication.enabled });
+      if (command === 'status')
+        print({
+          totals: store.summary().totals,
+          runs: store.summary().runs,
+          recoveryRequired: store.journals().length > 0,
+          providerEnabled: config.provider.enabled,
+          publicationEnabled: config.publication.enabled,
+        });
       if (command === 'reports') print(store.reports());
       if (command === 'report') {
         const report = store.report(requireId(action, 'Report ID'));
@@ -129,31 +196,49 @@ export async function main(argv = process.argv.slice(2)) {
     }
     store.recoverInterrupted();
     worker = createWorker({ store, config });
-    if (command === 'serve') return await serve({ directory, store, config, worker, signal: controller.signal });
-    if (command === 'ingest') { print(store.ingest(JSON.parse(readBounded(action)))); return; }
+    if (command === 'serve')
+      return await serve({ directory, store, config, worker, signal: controller.signal });
+    if (command === 'ingest') {
+      print(store.ingest(JSON.parse(readBounded(action))));
+      return;
+    }
     if (command === 'annotate') {
       print(store.annotateCapture(requireId(action, 'Capture ID'), JSON.parse(readBounded(input))));
       return;
     }
-    if (command === 'process') { print(await worker.cycle({ signal: controller.signal })); return; }
+    if (command === 'process') {
+      print(await worker.cycle({ signal: controller.signal }));
+      return;
+    }
     if (command === 'recover') {
       const results = await worker.recoverBrowserState();
       print(results);
-      if (results.some(({ result }) => !['restored', 'not-needed'].includes(result?.state)) || store.journals().length
-          || store.leases().some(lease => lease.name.startsWith('browser:'))) process.exitCode = 1;
+      if (
+        results.some(({ result }) => !['restored', 'not-needed'].includes(result?.state)) ||
+        store.journals().length ||
+        store.leases().some((lease) => lease.name.startsWith('browser:'))
+      )
+        process.exitCode = 1;
       return;
     }
     if (command === 'corpus') {
       const { parseCorpus, fetchTrancoCorpus } = await import('./corpus.mjs');
       let corpus;
-      if (action === 'import') corpus = parseCorpus(readBounded(input), {
-        format: values.format, source: values.source, snapshot: values.snapshot, limit: 300,
-      });
-      else if (action === 'tranco') corpus = await fetchTrancoCorpus(requireId(input, 'Fixed Tranco list ID'), { signal: controller.signal });
+      if (action === 'import')
+        corpus = parseCorpus(readBounded(input), {
+          format: values.format,
+          source: values.source,
+          snapshot: values.snapshot,
+          limit: 300,
+        });
+      else if (action === 'tranco')
+        corpus = await fetchTrancoCorpus(requireId(input, 'Fixed Tranco list ID'), {
+          signal: controller.signal,
+        });
       else throw error('unknown_command', 'Use corpus import FILE or corpus tranco LIST_ID');
       const run = store.createRun(corpus, { compare: values.compare === true });
       print(run);
-      if (corpus.errors?.some(item => item.excluded)) process.exitCode = 1;
+      if (corpus.errors?.some((item) => item.excluded)) process.exitCode = 1;
       return;
     }
     if (command === 'run') {
@@ -161,29 +246,50 @@ export async function main(argv = process.argv.slice(2)) {
       if (values['retry-failed']) store.resumeRun(runId, { retryFailed: true });
       const result = await worker.run(runId, { signal: controller.signal });
       print(result);
-      if (result.counts.failed || result.counts.interrupted || result.counts.cancelled || result.counts.inconclusive) process.exitCode = 1;
+      if (
+        result.counts.failed ||
+        result.counts.interrupted ||
+        result.counts.cancelled ||
+        result.counts.inconclusive
+      )
+        process.exitCode = 1;
       return;
     }
     if (command === 'catalog') {
-      const { discoverCatalog, importCatalog, checkFeed, checkMaintenance } = await import('./catalog.mjs');
+      const { discoverCatalog, importCatalog, checkFeed, checkMaintenance } =
+        await import('./catalog.mjs');
       if (action === 'discover' || action === 'import') {
         const source = requireId(input, 'Catalog source');
-        const result = action === 'discover'
-          ? await discoverCatalog(source, { snapshot: values.snapshot, signal: controller.signal })
-          : importCatalog(source, JSON.parse(readBounded(positionals[3])), { snapshot: values.snapshot, retrievedAt: new Date().toISOString() });
+        const result =
+          action === 'discover'
+            ? await discoverCatalog(source, {
+                snapshot: values.snapshot,
+                signal: controller.signal,
+              })
+            : importCatalog(source, JSON.parse(readBounded(positionals[3])), {
+                snapshot: values.snapshot,
+                retrievedAt: new Date().toISOString(),
+              });
         store.saveCatalog(result);
         print({ source: result.source, counts: result.counts, errors: result.errors });
         if (result.errors?.length) process.exitCode = 1;
         return;
       }
       if (action === 'health') {
-        const records = store.catalog().filter(record => !values.id || record.id === values.id).slice(0, positiveLimit(values.limit));
+        const records = store
+          .catalog()
+          .filter((record) => !values.id || record.id === values.id)
+          .slice(0, positiveLimit(values.limit));
         const results = [];
         for (const record of records) {
           if (controller.signal.aborted) break;
           const delivery = await checkFeed(record, { signal: controller.signal });
           const maintenance = await checkMaintenance(record, { signal: controller.signal });
-          store.saveHealth(record.id, { delivery, maintenance, checkedAt: new Date().toISOString() });
+          store.saveHealth(record.id, {
+            delivery,
+            maintenance,
+            checkedAt: new Date().toISOString(),
+          });
           results.push({ id: record.id, delivery, maintenance });
         }
         print({ selected: records.length, checked: results.length, results });
@@ -201,10 +307,13 @@ export async function main(argv = process.argv.slice(2)) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  main().catch(cause => {
-    const code = /^[a-z][a-z0-9_-]{0,79}$/.test(cause?.code ?? '') ? cause.code : 'operation_failed';
+  main().catch((cause) => {
+    const code = /^[a-z][a-z0-9_-]{0,79}$/.test(cause?.code ?? '')
+      ? cause.code
+      : 'operation_failed';
     const messages = {
-      worker_busy: 'A worker is already running for this state directory. Use its dashboard or stop it before this command.',
+      worker_busy:
+        'A worker is already running for this state directory. Use its dashboard or stop it before this command.',
       operation_failed: 'The operation failed. Check the input and local configuration.',
     };
     console.error(JSON.stringify({ error: code, message: messages[code] || cause.message }));

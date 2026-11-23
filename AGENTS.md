@@ -46,6 +46,19 @@ followed by one LF newline.
   Discovery alone does not authorize live browser/configuration changes, provider calls,
   or upstream submissions; follow the task's explicit live-operation scope.
 
+## Current catalog snapshots
+
+Catalog discovery is additive by default. An authenticated discovery request with
+`current: true` and no snapshot override opts into canonical current discovery.
+GitHub sources resolve HEAD once and read that immutable revision. Only complete,
+error-free canonical discoveries can retire missing records previously managed by
+that source's current snapshots. Older, partial, manual, custom and pinned imports
+retain evidence without reactivating or replacing managed current records.
+Retirement preserves payloads and content-addressed history in the records store;
+`catalog({ includeRetired: true })` reads retired entries. Default catalog queries
+and report attribution exclude retired entries. A newer current snapshot can
+reactivate a reappearing record. Existing unmanaged data is never silently retired.
+
 ## Commands
 
 Use the pinned Node release range in `package.json` and `companion/package.json`.
@@ -54,6 +67,34 @@ is `npm test` and `npm run check`, with its completion recorded in the task ledg
 The companion's verified commands are `npm test`, `npm run compile`, `npm run build`,
 `npm run build:firefox`, `npm run zip`, and `npm run zip:firefox`, from `companion/`.
 Reuse matching package/test receipts rather than rebuilding because a session restarted.
+
+Install root and companion dependencies with `npm ci` and `npm --prefix companion ci`.
+From the root, run `npm run format:check` and `npm run lint` for blocking formatting and
+correctness checks across maintained root and companion sources. Run `npm run format`
+to apply the pinned Prettier style. ESLint uses recommended JavaScript/TypeScript rules
+plus strict equality, no `var`, and `prefer-const`; TypeScript type checking remains
+`npm --prefix companion run compile`. Formatting excludes contribution evidence,
+lockfiles, generated output, dependencies, secrets, and the exact CLAUDE.md overlay.
+MegaLinter v10.2.0 adds HTMLHint, Stylelint, JSONLint, Yamllint, Actionlint,
+Markdownlint, PSScriptAnalyzer and PowerShell formatting alongside the pinned
+workspace ESLint and Prettier. Its full image covers every maintained language
+currently present, not every possible language or historical contribution artifact.
+CI checks only, never applies fixes or commits, and retains lint reports. CI also
+runs root and companion offline tests, compilation, and both browser builds on the
+minimum supported Node 22 and 24 releases and pinned Node 26 release. Markdown lint
+allows only the inline HTML elements required by the hire-me footer.
+
+With Docker's Linux daemon running, check all languages from the repository root:
+
+```powershell
+docker run --rm --platform linux/amd64 -v "${PWD}:/tmp/lint" -e APPLY_FIXES=none ghcr.io/oxsecurity/megalinter:v10.2.0
+```
+
+The container installs locked root dependencies with lifecycle scripts disabled.
+Reports go to excluded `megalinter-reports/`. PowerShell uses PSScriptAnalyzer's
+`Invoke-Formatter` with `.powershell-formatter.psd1`; fixes are an explicit local
+operation, not a CI side effect. Local Docker verification requires a running daemon;
+a successful standalone lint command does not establish a successful container run.
 
 Setup, local configuration and live-operation commands belong in the canonical
 [operations guide](../../../../../docs/okf/filter-observatory/operations.md).

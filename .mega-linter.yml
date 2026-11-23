@@ -1,0 +1,41 @@
+---
+APPLY_FIXES: none
+VALIDATE_ALL_CODEBASE: true
+DISABLE_ERRORS: false
+FORMATTERS_DISABLE_ERRORS: false
+JAVASCRIPT_DEFAULT_STYLE: prettier
+ENABLE_LINTERS:
+  - JAVASCRIPT_ES
+  - TYPESCRIPT_ES
+  - JAVASCRIPT_PRETTIER
+  - HTML_HTMLHINT
+  - CSS_STYLELINT
+  - JSON_JSONLINT
+  - YAML_YAMLLINT
+  - ACTION_ACTIONLINT
+  - MARKDOWN_MARKDOWNLINT
+  - POWERSHELL_POWERSHELL
+  - POWERSHELL_POWERSHELL_FORMATTER
+# Historical evidence and private/runtime data are not maintained source.
+FILTER_REGEX_EXCLUDE: '(^|/)(node_modules|\.git|\.wxt|\.output|dist|coverage|test-results|megalinter-reports|contributions|state|captures|artifacts|vendor)/|(^|/)(\.env[^/]*|config\.local\.json|CLAUDE\.md)$|\.(private\.json|sqlite[^/]*|log)$'
+PRE_COMMANDS:
+  # The container defaults to production dependencies; lint tools are devDependencies.
+  - command: npm ci --include=dev --ignore-scripts
+    cwd: workspace
+    continue_if_failed: false
+JAVASCRIPT_ES_CONFIG_FILE: eslint.config.mjs
+JAVASCRIPT_ES_CLI_EXECUTABLE: ['node_modules/.bin/eslint']
+JAVASCRIPT_ES_FILE_EXTENSIONS: ['.js', '.mjs']
+JAVASCRIPT_ES_ARGUMENTS: ['--max-warnings', '0']
+TYPESCRIPT_ES_CONFIG_FILE: eslint.config.mjs
+TYPESCRIPT_ES_CLI_EXECUTABLE: ['node_modules/.bin/eslint']
+TYPESCRIPT_ES_ARGUMENTS: ['--max-warnings', '0']
+# One project-wide Prettier pass covers JS, TS, HTML, CSS, JSON, YAML and Markdown.
+JAVASCRIPT_PRETTIER_CLI_EXECUTABLE: ['node_modules/.bin/prettier']
+# Maintained JavaScript uses .mjs; include it so the project-mode pass activates.
+JAVASCRIPT_PRETTIER_FILE_EXTENSIONS: ['.js', '.mjs']
+JAVASCRIPT_PRETTIER_CLI_LINT_MODE: project
+JAVASCRIPT_PRETTIER_CONFIG_FILE: .prettierrc.json
+FILEIO_REPORTER: false
+GITHUB_COMMENT_REPORTER: false
+UPDATED_SOURCES_REPORTER: false

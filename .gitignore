@@ -4,6 +4,7 @@ node_modules/
 companion/node_modules/
 companion/.output/
 companion/.wxt/
+megalinter-reports/
 coverage/
 test-results/
 *.sqlite*
