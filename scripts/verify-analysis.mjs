@@ -260,6 +260,7 @@ export function evaluateCase(fixture, result, validateFindings) {
 }
 
 export async function claimEvidence(output) {
+  await mkdir(path.dirname(output), { recursive: true });
   await mkdir(output);
   const artifacts = [];
   return {

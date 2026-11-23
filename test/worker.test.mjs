@@ -70,6 +70,38 @@ test('one accepted analysis creates durable findings with observed context and o
   assert.equal(store.reports().length, 1);
 });
 
+test('stop waits for direct capture processing to persist cancellation', async (t) => {
+  let release, started;
+  const entered = new Promise((resolve) => {
+    started = resolve;
+  });
+  const blocked = new Promise((resolve) => {
+    release = resolve;
+  });
+  const { store, worker } = fixture(t, {
+    analyze: async (_capture, _provider, { signal }) => {
+      started();
+      await blocked;
+      assert.equal(signal.aborted, true);
+      return { state: 'cancelled', findings: [], provenance: {} };
+    },
+  });
+  t.after(() => release());
+  store.ingest(captureFixture());
+  const processing = worker.processCaptures();
+  await entered;
+  let stopped = false;
+  const stopping = worker.stop().then(() => {
+    stopped = true;
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(stopped, false);
+  release();
+  await Promise.all([processing, stopping]);
+  assert.equal(store.captureStatus('capture_fixture_01').state, 'cancelled');
+  assert.equal(stopped, true);
+});
+
 test('disabled or restricted inference never turns a queued or abstained capture into a clean-site result', async (t) => {
   const { store, config, worker } = fixture(t, {
     analyze: async () => {

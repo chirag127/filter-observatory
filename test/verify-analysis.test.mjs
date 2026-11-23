@@ -639,7 +639,7 @@ test('oversized and cancelled proxy diagnostics stop reading and cancel their re
 
 test('evidence claims and files are exclusive and preserve an earlier attempt', async (t) => {
   const root = await directory(t),
-    output = path.join(root, 'run');
+    output = path.join(root, 'missing-parent', 'nested', 'run');
   const recorder = await claimEvidence(output);
   await recorder.write('intent.json', { intent: 'first' });
   await assert.rejects(claimEvidence(output), { code: 'EEXIST' });

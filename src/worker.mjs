@@ -58,6 +58,7 @@ export function createWorker({
   const restoreBrowser =
     recover ?? (async (...args) => (await import('./browser.mjs')).recoverComparison(...args));
   const lifetime = new AbortController();
+  const capturePromises = new Set();
   let cyclePromise;
   let runPromise;
   let activeRun;
@@ -636,7 +637,21 @@ export function createWorker({
     }
   }
 
-  async function processCaptures({ signal, limit = config.scheduler.maxAnalysesPerCycle } = {}) {
+  async function processCaptures(options) {
+    // Track direct calls as well as cycle-owned work before analysis can start.
+    const pending = Promise.resolve().then(() => processCaptureBatch(options));
+    capturePromises.add(pending);
+    try {
+      return await pending;
+    } finally {
+      capturePromises.delete(pending);
+    }
+  }
+
+  async function processCaptureBatch({
+    signal,
+    limit = config.scheduler.maxAnalysesPerCycle,
+  } = {}) {
     if (!config.provider.enabled) return { state: 'disabled', processed: 0 };
     const currentSignal = combinedSignal(signal);
     let processed = 0;
@@ -1070,6 +1085,7 @@ export function createWorker({
       await Promise.allSettled(
         [
           cyclePromise,
+          ...capturePromises,
           runPromise,
           preparationPromise,
           publicationPromise,
